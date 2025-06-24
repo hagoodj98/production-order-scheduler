@@ -12,7 +12,7 @@ export type TimeSlot = {
 }
 
 export type Table = {
-  
+  id: string,
   name: string,
   status: string
 }

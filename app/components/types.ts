@@ -16,3 +16,9 @@ export type Table = {
   name: string,
   status: string
 }
+
+export type AppContextType = {
+  data: Table[];
+  //This is the type of the setData function that updates a Table[] array in state
+  setData: React.Dispatch<React.SetStateAction<Table[]>>;
+}

@@ -1,25 +1,22 @@
 'use client';
 
-import React, {  useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import type { TimeSlot, Table } from './types';
-import { createColumnHelper, flexRender, getCoreRowModel, RowSelectionState, useReactTable } from "@tanstack/react-table";
+import { createColumnHelper, getCoreRowModel, RowSelectionState, useReactTable } from "@tanstack/react-table";
+import { useAppContext } from '../context';
 
 const columnHelper = createColumnHelper<Table>();
 
-
 const ProductionForm = () => {
 
+    const { data, setData } = useAppContext();
     const [time, setTime] = useState<TimeSlot>({ start: "", end: "", resource: ""});
-    const [timeSlot, setTimeSlot] = useState<string>("");
-    const [availabitySlot, setAvailabitySlot] = useState<Table[]>([]);
-    const [data, setData] = React.useState<Table[]>([]);
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [cellSelection, setCellSelection]= useState(null);
     
     const columns = [
-    
         columnHelper.accessor('name', {
             cell: info => info.getValue(),
         }),
@@ -29,21 +26,17 @@ const ProductionForm = () => {
             }
         }),
     ]
-
-    useEffect( () => {
-        //When availabitySlot array exists, then map through it to get each object. We want the object because the data variable from tanstacktable expects an array of objects
-      if (availabitySlot) {
-        const updatedTable = availabitySlot.map( job => job);
-        setData(updatedTable);
-      }
-    },[availabitySlot]); //Each time there is a change to this array, re run it. This is updating the table we see
+    
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        //Prevent the default behavior which is a automatic refresh when the form is submitted
         event.preventDefault();
+        //We want to take the shape of TimeSlot that we set in the types.ts file and plug in the values from the form
         const timeSlot: TimeSlot= {
             start: time.start,
             end: time.end,
             resource: time.resource
         }
+        //making an api call to process the data from form
         try {
             const response = await fetch('/api/schedule-task', {
                 method: 'POST',
@@ -51,14 +44,16 @@ const ProductionForm = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(timeSlot),
-            });            
+            });
+            //If everything passes, grab the json object and push the data to the context with created. That way we can share the data with any component in the application. In this case, the Table component       
             const data = await response.json();
-            setTimeSlot(data.slot);
-            setAvailabitySlot(data.availabity);
+            setData(data.availabity);
         } catch (error) {
             console.log(error);
         }
     }
+
+    //This function happens if there was a change made to the form. If user decides to make any changes, keep the previous value and change the field being changed(Lines 60-65).
     const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value}= event.target;
         console.log(name,value);
@@ -69,30 +64,6 @@ const ProductionForm = () => {
             }
         });
     }
-    const selectCell = async (cell: any) => {
-        
-        setCellSelection(cell);
-        if (cell === "pending") {
-            alert('allow editing');
-
-        } else {
-            return;
-        }
-        
-    }
-
-    const table = useReactTable({
-        columns,
-        data,
-        onRowSelectionChange: setRowSelection,
-        state: {
-            rowSelection,
-        },
-        enableMultiRowSelection: false,
-        getRowId: row => row.id,
-        
-        getCoreRowModel: getCoreRowModel(),
-    })
 
   return (
     <div>
@@ -121,46 +92,9 @@ const ProductionForm = () => {
                 <option value="Assembly Line A">Assembly Line A</option>
                 <option value="Assembly Line B">Assembly Line B</option>
                 <option value="Assembly Line C">Assembly Line C</option>
-                
             </Form.Select>
-
             <Button variant="primary" type="submit">Submit</Button>
         </Form>
-       
-        <table>
-            <thead>
-                {table.getHeaderGroups().map(headerGroup => (
-                    <tr key={headerGroup.id}>
-                        {headerGroup.headers.map(header => (
-                            <th key={header.id}>
-                                {header.isPlaceholder
-                                    ? null
-                                    : flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                    )}
-                            </th>
-                        ))}
-                    </tr>
-                ))}
-            </thead>
-            <tbody>
-            {table.getRowModel().rows.map(row => {
-    return (
-        <tr key={row.id}>
-            {row.getVisibleCells().map(cell => {
-            
-            return <td key={cell.id} className={`${cellSelection ? 'tw-bg-black' : 'null'}`} onClick={() =>  selectCell(cell.getValue())} >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-            
-            })}
-        </tr>
-        )
-        })}
-            </tbody>
-        </table>
-        <h1>cell value</h1>
-        <h1>{cellSelection}</h1>
     </div>
   )
 }

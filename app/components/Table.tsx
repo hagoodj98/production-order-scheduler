@@ -1,42 +1,53 @@
+'use client';
+
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useState } from "react";
-import type { Resource } from "./types";
+import React, { useState } from 'react';
+import type {Table } from "./types";
+import { useAppContext } from "../context";
 
-const newResources: Resource[] = [
-    {name: "CNC Machine 1", status: "Available"},
-    {name: "Assembly Line A", status: "Available"},
-    {name: "Assembly Line B", status: "Available"},
-    {name: "Assembly Line C", status: "Available"}
-]
-
-const columnHelper = createColumnHelper<Resource>();
-
-const columns = [
-    columnHelper.accessor('name', {
-        cell: info => info.getValue(),
-    }),
-    columnHelper.accessor('status', {
-        
-        cell: info => info.getValue(),
-    })
-]
+const columnHelper = createColumnHelper<Table>();
 
 const Table = () => {
-    const [data, setData] = useState(() => [...newResources]);
-
+   
+    const [cellSelection, setCellSelection]= useState(null);
+    const {data} = useAppContext();
+//According to the Tanstack Table docs, this is how we want to define our columns
+    const columns = [
+//Each accessor is a column name
+        columnHelper.accessor('name', {
+            cell: info => info.getValue(),
+        }),
+        columnHelper.accessor('status', {
+            cell: ({row}) => {
+                return <div><strong>{row.original.status}</strong></div>
+            }
+        }),
+    ]
+//According to tanstack, this is how we define our table
     const table = useReactTable({
-        data,
         columns,
+        data,
+        getRowId: row => row.id,
         getCoreRowModel: getCoreRowModel(),
     })
-
+//This function executes when a user clicks on any cell that has a value of "pending". If true, then allow editing, if not, do not.
+    const selectCell = async (cell: any) => {
+        
+        setCellSelection(cell);
+        if (cell === "pending") {
+            alert('allow editing');
+        } else {
+            return;
+        }
+    }
+    
     return (
     <div>
         <table>
             <thead>
-                {table.getHeaderGroups().map(headersGroup => (
-                    <tr key={headersGroup.id}>
-                        {headersGroup.headers.map( header => (
+                {table.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                        {headerGroup.headers.map(header => (
                             <th key={header.id}>
                                 {header.isPlaceholder
                                     ? null
@@ -50,18 +61,21 @@ const Table = () => {
                 ))}
             </thead>
             <tbody>
-                { table.getRowModel().rows.map(row => (
-                    <tr key={row.id}>
-                        {row._getAllVisibleCells().map(cell => (
-                            <td key={cell.id}>
-                                {flexRender(cell.column.columnDef.cell,
-                                cell.getContext())}
-                            </td>
-                        ))}
-                    </tr>
-                ))}
+            {table.getRowModel().rows.map(row => {
+    return (
+        <tr key={row.id}>
+            {row.getVisibleCells().map(cell => {
+            
+            return <td key={cell.id} className={`${cellSelection ? 'tw-bg-black' : 'null'}`} onClick={() =>  selectCell(cell.getValue())} >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+            
+            })}
+        </tr>
+        )
+        })}
             </tbody>
         </table>
+     
     </div>
     )
 }

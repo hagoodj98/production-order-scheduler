@@ -2,13 +2,14 @@
 
 import React, { createContext, useContext } from "react";
 import type { Table, AppContextType } from '../components/types'
+import { newResources } from "../components/Resources";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppWrapper({children} : {
     children: React.ReactNode;
 }) {
-    const [data, setData] = React.useState<Table[]>([]);
+    const [data, setData] = React.useState<Table[]>(newResources);
 
     return (
         <AppContext.Provider value={{data, setData}}>

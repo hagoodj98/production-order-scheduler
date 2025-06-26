@@ -1,20 +1,31 @@
+export type SlotStatus = 'Available' | 'Pending' | 'Scheduled';
+
+export type SlotKey =
+  | '08:00-09:00'
+  | '09:00-10:00'
+  | '10:00-11:00'
+  | '11:00-12:00'
+  | '12:00-13:00'
+  | '13:00-14:00';
+
 
 export type TimeSlot = {
-    start: string;
-    end: string;
-    resource: string
-  };
+  timeslot: string 
+  resource: string
+};
 
- export type Resource = {
-    id: number,
-    name: string,
-    status: string
+export type Resource = {
+  id: number,
+  name: string,
+} & {
+  [key in SlotKey]: SlotStatus
 }
 
 export type Table = {
-  id: string,
+  id: number,
   name: string,
-  status: string
+} & {
+  [key in SlotKey]: SlotStatus
 }
 
 export type AppContextType = {

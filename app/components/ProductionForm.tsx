@@ -3,37 +3,20 @@
 import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import type { TimeSlot, Table } from './types';
-import { createColumnHelper, getCoreRowModel, RowSelectionState, useReactTable } from "@tanstack/react-table";
+import type { TimeSlot } from './types';
 import { useAppContext } from '../context';
-
-const columnHelper = createColumnHelper<Table>();
 
 const ProductionForm = () => {
 
     const { data, setData } = useAppContext();
-    const [time, setTime] = useState<TimeSlot>({ start: "", end: "", resource: ""});
-    const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-    const [cellSelection, setCellSelection]= useState(null);
-    
-    const columns = [
-        columnHelper.accessor('name', {
-            cell: info => info.getValue(),
-        }),
-        columnHelper.accessor('status', {
-            cell: ({cell, row}) => {
-                return <div><strong>{row.original.status}</strong></div>
-            }
-        }),
-    ]
+    const [time, setTime] = useState<TimeSlot>({ timeslot: "",  resource: ""});
     
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         //Prevent the default behavior which is a automatic refresh when the form is submitted
         event.preventDefault();
         //We want to take the shape of TimeSlot that we set in the types.ts file and plug in the values from the form
         const timeSlot: TimeSlot= {
-            start: time.start,
-            end: time.end,
+            timeslot: time.timeslot,
             resource: time.resource
         }
         //making an api call to process the data from form
@@ -68,24 +51,16 @@ const ProductionForm = () => {
   return (
     <div>
         <Form onSubmit={handleSubmit} >
-            <Form.Select name='start' onChange={handleChange} aria-label="Default select example">
-                <option>Start Time</option>
-                <option value="08:00">8:00am</option>
-                <option value="09:00">9:00am</option>
-                <option value="10:00">10:00am</option>
-                <option value="11:00">11:00am</option>
-                <option value="12:00">12:00pm</option>
-                <option value="13:00">1:00pm</option>
+            <Form.Select name='timeslot' onChange={handleChange} aria-label="Default select example">
+                <option>Choose time slot</option>
+                <option value="08:00-09:00">8:00am-9:00am</option>
+                <option value="09:00-10:00">9:00am-10:00am</option>
+                <option value="10:00-11:00">11:00am-11:00am</option>
+                <option value="11:00-12:00">11:00am-12:00pm</option>
+                <option value="12:00-13:00">12:00pm-1:00pm</option>
+                <option value="13:00-14:00">1:00pm-2:00pm</option>
             </Form.Select>
-            <Form.Select name='end' onChange={handleChange} aria-label="Default select example">
-                <option>End Time</option>
-                <option value="09:00">9:00am</option>
-                <option value="10:00">10:00am</option>
-                <option value="11:00">11:00am</option>
-                <option value="12:00">12:00pm</option>
-                <option value="13:00">1:00pm</option>
-                <option value="14:00">2:00pm</option>
-            </Form.Select>
+           
             <Form.Select name='resource' onChange={handleChange} aria-label="Default select example">
                 <option>Choose Resource</option>
                 <option value="CNC Machine 1">CNC Machine 1</option>

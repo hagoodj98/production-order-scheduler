@@ -4,60 +4,69 @@ import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "
 import type { Cell } from "@tanstack/react-table";
 import React, { useState } from 'react';
 import type {Table } from "./types";
-import { useAppContext } from "../context";
+import { useAppContext, useSlotContext } from "../context";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { newResources } from "./Resources";
 
 const columnHelper = createColumnHelper<Table>();
 
 const Table = () => {
+    const {dataSlot, setDataSlot} = useSlotContext();
     const router = useRouter();
-    const [cellSelection, setCellSelection]= useState(null);
-    const {data} = useAppContext();
+    const fetcher =  async (url: string) => {
+        const res = await fetch(url);
+        return await res.json();
+    }
+    const { data: fetchedData } = useSWR('/api/poll-resource', fetcher, {
+        refreshInterval: 5000, // poll every 5 seconds
+      });
+    const [cellSelection, setCellSelection]= useState(false);
+    const { data } = useAppContext();
 //According to the Tanstack Table docs, this is how we want to define our columns
     const columns = [
 //Each accessor is a column name
         columnHelper.accessor('name', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('08:00-09:00', {
+        columnHelper.accessor('12:13-12:15', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('09:00-10:00', {
+        columnHelper.accessor('12:14-12:17', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('10:00-11:00', {
+        columnHelper.accessor('12:15-12:19', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('11:00-12:00', {
-            cell: info => info.getValue(),
-        }),
-        columnHelper.accessor('12:00-13:00', {
-            cell: info => info.getValue(),
-        }),
-        columnHelper.accessor('13:00-14:00', {
-            cell: info => info.getValue(),
-        }),
-       
-       /* columnHelper.accessor('status', {
-            cell: ({row}) => {
-                return <div><strong>{row.original.status}</strong></div>
-            }
-        }),
-        */
+      
     ]
 //According to tanstack, this is how we define our table
     const table = useReactTable({
         columns,
-        data,
+        data: fetchedData?.availability ?? newResources,
         getCoreRowModel: getCoreRowModel(),
     })
 //This function executes when a user clicks on any cell that has a value of "pending". If true, then allow editing, if not, do not.
     const selectCell = async (cell: Cell<Table, unknown>) => {
         
         //setCellSelection(cell);
-        if (cell.getValue() === "pending") {
+        console.log('values to push👇🏽');
+        const cellInfo = {
+            name: cell.row.original.name,
+            time: cell.column.id
+        }
+
+        //This would be used if I wanted to prefill the form if user wanted to edit a pending job.
+        setDataSlot(cellInfo);
+        console.log(cell.column.id);
+        console.log(cell.row.original.name);
+        
+    //This conditional statement controls if user tries to click any of the cells. If avaiable or pending, allow scheduling. Otherwise, don't.
+        if (cell.getValue() === "Pending" || cell.getValue() === "Available") {
+            setCellSelection(true);
             router.push('/assign-resource');
         } else {
+            alert("Cannot schedule here. Currently busy");
             return;
         }
     }
@@ -87,8 +96,9 @@ const Table = () => {
         <tr key={row.id}>
             {row.getVisibleCells().map(cell => {
             
-            return <td key={cell.id} className={`${cellSelection ? 'tw-bg-black' : 'null'}`} onClick={() =>  selectCell(cell)} >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+            return <td key={cell.id} className={cell.getValue() === "Pending" || cell.getValue() === "Available" ? 'tw-cursor-pointer hover:tw-bg-orange-400' : '' } onClick={() => selectCell(cell)}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </td>
             
             })}
         </tr>

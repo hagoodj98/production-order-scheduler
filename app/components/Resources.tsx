@@ -3,17 +3,18 @@ import type { Resource, SlotKey, SlotStatus } from "./types"
 
 
 const slotKeys: SlotKey[] = [
-    "08:00-09:00",
-    "09:00-10:00",
-    "10:00-11:00",
-    "11:00-12:00",
-    "12:00-13:00",
-    "13:00-14:00",
-  ];
+    "12:13-12:15",
+    "12:14-12:17",
+    "12:15-12:19",
+  
 
+  ];
+//Created a function that would dynamically add resources to the table. 
   function createResource(id: number, name: string, status: SlotStatus): Resource {
+    //This dynamically builds an Object by mapping through the Slot array
     const timeSlots = Object.fromEntries(
       slotKeys.map(key => [key, status])
+      //This type assertion tells typescript that this object should be treated as having keys from SlotKey and values of type SlotStatus.
     ) as Record<SlotKey, SlotStatus>;
   
     return {

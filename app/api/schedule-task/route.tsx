@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import cron from 'node-cron';
-import type { Resource, TimeSlot, SlotKey } from '../../components/types';
+import type {TimeSlot } from '../../components/types';
+import { myTasks } from '@/tasks/MyTasks';
 import { newResources } from '@/app/components/Resources';
-
-//Created a simple array of time slots.
-
+import { setLatestJob, getLatestJob } from '@/utils/route';
 
 export async function POST(req: NextRequest) {
 
@@ -12,30 +10,26 @@ export async function POST(req: NextRequest) {
         //TimeSlot expects an object. So body will be an object
         const body: TimeSlot = await req.json();
     
-        // simply get the properties for use
-        const timeSlot = `${body.timeslot}`;
-        const resource = body.resource;
+         // User-submitted input
+        if (body?.timeslot && body?.resource) {
+            //Save the input so cron can later retrieve it. If data is not saved then timeslot and resource will be undefined from Cron's perspective, because it is sending an empty payload
+            setLatestJob({ timeSlot: body.timeslot, resource: body.resource });
+            return NextResponse.json({ message: 'Input saved' });//debugging
+        }
 
-        const requestedJob = newResources.filter((job) => job.name === resource);
-        /*const task= cron.schedule('* * * * *', () => {
-                console.log('Running a task every minute');
-        });*/
-       
-        console.log(timeSlot);
-        
-        //We want to take the data from the client and select the array holding the job. Inserting the users data inside to grab the key and change the value to pending
-        requestedJob[0][timeSlot as SlotKey]='Pending';
-       
-        console.log(newResources);
+        // Retrieve and use the most up-to-date job input for cron. Because cron makes an API request to this endpoint with an empty body
+        const { timeSlot, resource } = getLatestJob();
 
-        return NextResponse.json({slot: timeSlot, availabity: newResources});
+        if (timeSlot && resource) {
+            console.log('🔄 Reusing saved job:', { timeSlot, resource });//debugging
+            myTasks(timeSlot, resource);
+          }
+          console.log(newResources);
+          
+          
+        return NextResponse.json({ availabity: newResources, message: 'Task ran with latest job'});
     } catch (error) {
-        console.log('error');
-        
         console.error(error);
-        
     }
-   
-
     
 }

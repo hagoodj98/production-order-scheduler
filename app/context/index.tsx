@@ -1,10 +1,11 @@
 'use client';
 
-import React, { createContext, useContext } from "react";
-import type { Table, AppContextType } from '../components/types'
+import React, { createContext, useContext, useState } from "react";
+import type { Table, AppContextType, SlotContextType, Slot } from '../components/types'
 import { newResources } from "../components/Resources";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+const SlotContext = createContext<SlotContextType | undefined>(undefined);
 
 export function AppWrapper({children} : {
     children: React.ReactNode;
@@ -23,4 +24,25 @@ export function useAppContext() {
     throw new Error("useAppContext must be used within an AppWrapper");
   }
   return context;
+}
+
+export function SlotWrapper({children} : {
+    children: React.ReactNode;
+}) {
+    const [dataSlot, setDataSlot] = React.useState<Slot>({ name:'', time: ''});
+
+    return (
+        <SlotContext.Provider value={{dataSlot, setDataSlot}}>
+            {children}
+        </SlotContext.Provider>
+
+    )
+}
+
+export function useSlotContext() {
+    const context = useContext(SlotContext);
+    if (!context) {
+        throw new Error("useAppContext must be used within an AppWrapper");
+      }
+    return context;
 }

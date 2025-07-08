@@ -10,7 +10,6 @@ export default function Home () {
     <div>
       <h1>Hello world</h1>
       <Table />
-      <Link href='/assign-resource'>Schedule Appointment</Link>
     </div>
   );
 }

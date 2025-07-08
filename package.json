@@ -2,8 +2,10 @@
   "name": "production-order-scheduler",
   "version": "0.1.0",
   "private": true,
+
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently \"next dev\" \"npm run start:cron\"",
+   "start:cron": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' start-cron/start.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,7 +15,9 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.1.2",
     "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
+    "concurrently": "^9.2.0",
     "next": "15.3.3",
     "node-cron": "^4.1.0",
     "react": "^19.0.0",
@@ -21,6 +25,8 @@
     "react-dom": "^19.0.0",
     "recharts": "^2.15.3",
     "schedulejs": "^0.6.3",
+    "swr": "^2.3.3",
+    "ts-node": "^10.9.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {

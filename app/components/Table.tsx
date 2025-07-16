@@ -29,13 +29,13 @@ const Table = () => {
         columnHelper.accessor('name', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('12:13-12:15', {
+        columnHelper.accessor('24:42-24:45', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('12:14-12:17', {
+        columnHelper.accessor('24:45-24:47', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('12:15-12:19', {
+        columnHelper.accessor('24:47-24:49', {
             cell: info => info.getValue(),
         }),
       
@@ -51,16 +51,25 @@ const Table = () => {
         
         //setCellSelection(cell);
         console.log('values to push👇🏽');
+
+
+        const cellID = {
+            row: cell.row.id,
+            column: cell.column.id
+        } 
         const cellInfo = {
+            id: cellID,
             name: cell.row.original.name,
-            time: cell.column.id
+            time: cell.column.id,
         }
 
+      
+        
         //This would be used if I wanted to prefill the form if user wanted to edit a pending job.
         setDataSlot(cellInfo);
-        console.log(cell.column.id);
-        console.log(cell.row.original.name);
-        
+
+
+      
     //This conditional statement controls if user tries to click any of the cells. If avaiable or pending, allow scheduling. Otherwise, don't.
         if (cell.getValue() === "Pending" || cell.getValue() === "Available") {
             setCellSelection(true);

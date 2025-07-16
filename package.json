@@ -2,10 +2,9 @@
   "name": "production-order-scheduler",
   "version": "0.1.0",
   "private": true,
-
   "scripts": {
     "dev": "concurrently \"next dev\" \"npm run start:cron\"",
-   "start:cron": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' start-cron/start.ts",
+    "start:cron": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' start-cron/start.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -27,7 +26,7 @@
     "schedulejs": "^0.6.3",
     "swr": "^2.3.3",
     "ts-node": "^10.9.2",
-    "zod": "^3.25.67"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

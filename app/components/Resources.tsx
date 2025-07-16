@@ -3,14 +3,12 @@ import type { Resource, SlotKey, SlotStatus } from "./types"
 
 
 const slotKeys: SlotKey[] = [
-    "12:13-12:15",
-    "12:14-12:17",
-    "12:15-12:19",
-  
-
+    "24:42-24:45",
+    "24:45-24:47",
+    "24:47-24:49",
   ];
 //Created a function that would dynamically add resources to the table. 
-  function createResource(id: number, name: string, status: SlotStatus): Resource {
+  function createResource(id: number, name: string, row: string, status: SlotStatus): Resource {
     //This dynamically builds an Object by mapping through the Slot array
     const timeSlots = Object.fromEntries(
       slotKeys.map(key => [key, status])
@@ -20,15 +18,16 @@ const slotKeys: SlotKey[] = [
     return {
       id,
       name,
+      row,
       ...timeSlots,
     };
   }
   
   export const newResources: Resource[] = [
-    createResource(1, "CNC Machine 1", "Available"),
-    createResource(2, "Assembly Line A", "Available"),
-    createResource(3, "Assembly Line B", "Available"),
-    createResource(4, "Assembly Line C", "Available"),
+    createResource(1, "CNC Machine 1", '0', "Available"),
+    createResource(2, "Assembly Line A", '1', "Available"),
+    createResource(3, "Assembly Line B", '2', "Available"),
+    createResource(4, "Assembly Line C", '3', "Available"),
   ];
 
 

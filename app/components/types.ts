@@ -1,19 +1,26 @@
 export type SlotStatus = 'Available' | 'Pending' | 'Busy';
 
 export type SlotKey =
-  | '12:13-12:15'
-  | '12:14-12:17'
-  | '12:15-12:19'
+  | '24:42-24:45'
+  | '24:45-24:47'
+  | '24:47-24:49'
+
+export type CellID = {
+  row: string,
+  column: string
+}
 
 
-export type TimeSlot = {
-  timeslot: string 
+export type TimeJobSlot = {
+  id: CellID,
+  timeslot: string,
   resource: string
 };
 
 export type Resource = {
   id: number,
   name: string,
+  row: string //This is so that I can have access to the row in which aligns with the job the user selected
 } & {
   [key in SlotKey]: SlotStatus
 }
@@ -26,6 +33,10 @@ export type Table = {
   [key in SlotKey]: SlotStatus
 }
 export type Slot = {
+  id: {
+    row: string,
+    column: string
+  },
   name: string,
   time: string
 }
@@ -38,4 +49,8 @@ export type AppContextType = {
 export type SlotContextType = {
   dataSlot: Slot,
   setDataSlot: React.Dispatch<React.SetStateAction<Slot>>;
+}
+export type ErrorMessage = {
+  field: string,
+  message: string
 }

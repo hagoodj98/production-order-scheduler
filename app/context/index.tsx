@@ -29,7 +29,14 @@ export function useAppContext() {
 export function SlotWrapper({children} : {
     children: React.ReactNode;
 }) {
-    const [dataSlot, setDataSlot] = React.useState<Slot>({ name:'', time: ''});
+    const [dataSlot, setDataSlot] = React.useState<Slot>({
+        id: {
+            row: '',
+            column: ''
+        },
+        name:'',
+        time: ''
+    });
 
     return (
         <SlotContext.Provider value={{dataSlot, setDataSlot}}>

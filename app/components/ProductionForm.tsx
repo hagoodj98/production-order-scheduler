@@ -48,7 +48,7 @@ const ProductionForm = () => {
              
             if (!response.ok) {
                 const errorResponse = await response.json();
-                if (response.status === 404 && errorResponse.fieldErrors) {
+                if (response.status === 404 || errorResponse.fieldErrors) {
                     setErrors(errorResponse.fieldErrors);
                 } else {
                     setErrorStatus('error');
@@ -107,7 +107,7 @@ const ProductionForm = () => {
         <Form onSubmit={handleSubmit}>
             <Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
                 <option value="">Choose time slot</option>
-                <option value="24:42-24:45">14:56-14:59</option>
+                <option value="08:42-08:45">14:56-14:59</option>
                 <option value="24:45-24:47">15:12-15:13</option>
                 <option value="24:47-24:49">15:14-15:15</option>
 

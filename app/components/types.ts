@@ -1,7 +1,7 @@
 export type SlotStatus = 'Available' | 'Pending' | 'Busy';
 
 export type SlotKey =
-  | '24:42-24:45'
+  | '08:42-08:45'
   | '24:45-24:47'
   | '24:47-24:49'
 

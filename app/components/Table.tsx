@@ -29,7 +29,7 @@ const Table = () => {
         columnHelper.accessor('name', {
             cell: info => info.getValue(),
         }),
-        columnHelper.accessor('24:42-24:45', {
+        columnHelper.accessor('08:42-08:45', {
             cell: info => info.getValue(),
         }),
         columnHelper.accessor('24:45-24:47', {

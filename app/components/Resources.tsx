@@ -1,12 +1,8 @@
 //Create predefined resources in a server component
 import type { Resource, SlotKey, SlotStatus } from "./types"
+import slots from "./dataslots";
 
-
-const slotKeys: SlotKey[] = [
-    "08:42-08:45",
-    "24:45-24:47",
-    "24:47-24:49",
-  ];
+const slotKeys = slots.map((slot) => slot.slot) as SlotKey[];
 //Created a function that would dynamically add resources to the table. 
   function createResource(id: number, name: string, row: string, status: SlotStatus): Resource {
     //This dynamically builds an Object by mapping through the Slot array
@@ -20,7 +16,7 @@ const slotKeys: SlotKey[] = [
       name,
       row,
       ...timeSlots,
-    };
+    } as Resource;
   }
   
   export const newResources: Resource[] = [

@@ -32,7 +32,7 @@ function changeStatuses (job: Resource, slotKey: string) {
         if (now >= startTime && now < endTime) {
           job[slotKey as SlotKey] = 'Busy';
         } else if (now < startTime) {
-          job[slotKey as SlotKey] = 'Pending';
+          job[slotKey as SlotKey] = 'Scheduled';
         } else {
             job[slotKey as SlotKey] = 'Available';
           }
@@ -124,7 +124,7 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
         //If a user go into a previously selected cell and changes the job and/or time slot, then we should make this the most recent input or request from the user for Cron to use when making a call to schedule-task.
         setLatestJob({id: {row: `${job.row}`, column: `${slotKey}`}, timeSlot: `${slotKey}`, resource: `${job.name}` });
 
-      } else if (job[slotKey as SlotKey] === 'Pending') { //This condition checks if a user tries to select a time that already has a pending status. If it does then don't allow the change
+      } else if (job[slotKey as SlotKey] === 'Scheduled') { //This condition checks if a user tries to select a time that already has a pending status. If it does then don't allow the change
           console.log('cannot choose time, already taken.');
           throw new CustomError('Slot is already filled', 400);
       

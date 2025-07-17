@@ -1,15 +1,18 @@
-export type SlotStatus = 'Available' | 'Pending' | 'Busy';
+
+export type SlotStatus = 'Available' | 'Scheduled' | 'Busy';
 
 export type SlotKey =
-  | '08:42-08:45'
-  | '24:45-24:47'
-  | '24:47-24:49'
+  | (typeof import("./dataslots").default[number]["slot"]);
 
 export type CellID = {
   row: string,
   column: string
 }
 
+export type TimeSlots = {
+  id: number,
+  slot: string
+}
 
 export type TimeJobSlot = {
   id: CellID,

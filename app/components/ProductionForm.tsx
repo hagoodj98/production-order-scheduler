@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import type { TimeJobSlot, ErrorMessage } from './types';
 import { useAppContext, useSlotContext } from '../context';
 import * as z from "zod/v4"
+import slots from './dataslots';
 
 const ProductionForm = () => {
 
@@ -107,10 +108,13 @@ const ProductionForm = () => {
         <Form onSubmit={handleSubmit}>
             <Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
                 <option value="">Choose time slot</option>
-                <option value="08:42-08:45">14:56-14:59</option>
-                <option value="24:45-24:47">15:12-15:13</option>
-                <option value="24:47-24:49">15:14-15:15</option>
-
+                {slots.map((slot, index) => {
+                    return(
+                        <div key={index}>
+                            <option value={slot.slot}>{slot.slot}</option>
+                        </div>
+                    )
+                })}
             </Form.Select>
             {errors.find(err => err.field ==='timeslot') && (
                 <div className='tw-text-red-500'>
@@ -137,3 +141,9 @@ const ProductionForm = () => {
 }
 
 export default ProductionForm;
+
+/*
+             <option value="08:42-08:45">14:56-14:59</option>
+                <option value="24:45-24:47">15:12-15:13</option>
+                <option value="24:47-24:49">15:14-15:15</option>
+*/

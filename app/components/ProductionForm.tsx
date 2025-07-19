@@ -21,7 +21,7 @@ const ProductionForm = () => {
         resource: z.string().min(1, 'Please choose a job'),
     });
 
-    const { data, setData } = useAppContext();
+    const { data, setData, setPendingCells } = useAppContext();
     const [timeJob, setTimeJob] = useState<TimeJobSlot>({id: {row: '', column: ''}, timeslot: "",  resource: ""});
     const {dataSlot, setDataSlot} = useSlotContext();
     const [errors, setErrors]= useState<ErrorMessage[]>([]);
@@ -59,7 +59,25 @@ const ProductionForm = () => {
            //If everything passes, grab the json object and push the data to the context with created. That way we can share the data with any component in the application. In this case, the Table component      
             const data = await response.json();
             setData(data.availabity);
-            
+          
+            const saved = localStorage.getItem('pendingCells');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    const index = parsed.findIndex((pending: {row: string; column: string}) => pending.row === timeJob.id.row && pending.column === timeJob.id.column )
+                    if (index !== -1) {
+                        console.log('running');
+                        
+                        parsed.splice(index, 1);
+                        localStorage.setItem('pendingCells', JSON.stringify(parsed));
+                        setPendingCells(parsed);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to parse pendingCells from localstorage', error);
+            }
+        }
         } catch (error) {
             console.log(error);
             
@@ -74,6 +92,7 @@ const ProductionForm = () => {
               }
         }
     }
+
 
     //This function happens if there was a change made to the form. If user decides to make any changes, keep the previous value and change the field being changed(Lines 60-65).
     const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -110,9 +129,7 @@ const ProductionForm = () => {
                 <option value="">Choose time slot</option>
                 {slots.map((slot, index) => {
                     return(
-                        <div key={index}>
-                            <option value={slot.slot}>{slot.slot}</option>
-                        </div>
+                        <option key={index} value={slot.slot}>{slot.slot}</option>
                     )
                 })}
             </Form.Select>

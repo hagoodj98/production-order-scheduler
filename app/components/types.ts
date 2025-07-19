@@ -1,5 +1,5 @@
 
-export type SlotStatus = 'Available' | 'Scheduled' | 'Busy';
+export type SlotStatus = 'Pending' | 'Available' | 'Scheduled' | 'Busy';
 
 export type SlotKey =
   | (typeof import("./dataslots").default[number]["slot"]);
@@ -13,12 +13,22 @@ export type TimeSlots = {
   id: number,
   slot: string
 }
+interface ColumnFilter {
+  id: string
+  value: unknown
+}
+export type ColumnFiltersState = ColumnFilter[];
 
 export type TimeJobSlot = {
   id: CellID,
   timeslot: string,
   resource: string
 };
+
+export type MapPending = {
+  row: string,
+  column: string,
+}
 
 export type Resource = {
   id: number,
@@ -48,6 +58,8 @@ export type AppContextType = {
   data: Table[];
   //This is the type of the setData function that updates a Table[] array in state
   setData: React.Dispatch<React.SetStateAction<Table[]>>;
+  pendingCells: MapPending[];
+  setPendingCells: React.Dispatch<React.SetStateAction<MapPending[]>>;
 }
 export type SlotContextType = {
   dataSlot: Slot,

@@ -124,10 +124,6 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
         //If a user go into a previously selected cell and changes the job and/or time slot, then we should make this the most recent input or request from the user for Cron to use when making a call to schedule-task.
         setLatestJob({id: {row: `${job.row}`, column: `${slotKey}`}, timeSlot: `${slotKey}`, resource: `${job.name}` });
 
-      } else if (job[slotKey as SlotKey] === 'Scheduled') { //This condition checks if a user tries to select a time that already has a pending status. If it does then don't allow the change
-          console.log('cannot choose time, already taken.');
-          throw new CustomError('Slot is already filled', 400);
-      
       } else {
         //If the job, the user selected is not found in the array then we simply go in and change the status and time slot like requested even if the job and id rows are different at first
         changeStatuses(job, slotKey);
@@ -168,7 +164,7 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
         if (allAvailable) {
           pendingJobs.splice(index, 1);
         }
-      })
+      });
       //Because Cron every few seconds we don't want to keep pushing the same object to the array. Instead we want to check if it already exists. If it does, then we want to loop through the whole array looking for any pending statuses. That is what loopThroughPendingJobs function is doing 
       const isExistingJob = pendingJobs.find( obj => obj.id === jobStatusChanged.id); 
       //working so far
@@ -218,3 +214,4 @@ export const myTasks= (timeSlot: string, resource: string, id: CellID ): void =>
       }
   }
 }
+

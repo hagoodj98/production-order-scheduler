@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from "react";
-import type { Table, AppContextType, SlotContextType, Slot } from '../components/types'
+import type { Table, AppContextType, SlotContextType, Slot, MapPending } from '../components/types'
 import { newResources } from "../components/Resources";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -11,9 +11,9 @@ export function AppWrapper({children} : {
     children: React.ReactNode;
 }) {
     const [data, setData] = React.useState<Table[]>(newResources);
-
+    const [pendingCells, setPendingCells] = useState<MapPending[]>([])
     return (
-        <AppContext.Provider value={{data, setData}}>
+        <AppContext.Provider value={{data, setData, pendingCells, setPendingCells}}>
             {children}
         </AppContext.Provider>
     )

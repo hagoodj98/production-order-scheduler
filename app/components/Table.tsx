@@ -10,6 +10,12 @@ import useSWR from "swr";
 import { newResources } from "./Resources";
 import slots from "./dataslots";
 import DropDownFiltering from "./DropDownFiltering";
+import * as z from "zod/v4"
+
+const userSelection = z.object({
+    timeslot: z.string().min(1,'Please select timeSlot'),
+    resource: z.string().min(1, 'Please choose a job'),
+});
 
 const columnHelper = createColumnHelper<Table>();
 
@@ -24,8 +30,7 @@ const Table = () => {
         refreshInterval: 5000, // poll every 5 seconds
       });
     const [cellSelection, setCellSelection]= useState(false);
-    const { pendingCells, setPendingCells } = useAppContext();
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [ columnFilters, setColumnFilters ] = useState<ColumnFiltersState>([])
 //According to the Tanstack Table docs, this is how we want to define our columns
     const columns = [
 //Each accessor is a column name
@@ -35,7 +40,7 @@ const Table = () => {
         ...slots.map((slot) => {
             return columnHelper.accessor(slot.slot, {
                 cell: info => info.getValue(),
-                filterFn: (row,columnId, filterValue) => {
+                filterFn: (row, columnId, filterValue) => {
                     return row.getValue(columnId) === filterValue;
                 },
                
@@ -56,65 +61,33 @@ const Table = () => {
 
 //This function executes when a user clicks on any cell that has a value of "pending". If true, then allow editing, if not, do not.
     const selectCell = async (cell: Cell<Table, unknown>) => {
-        if (cell.getValue() === "Pending" || cell.getValue() === "Available") {
-            setCellSelection(true);
-            router.push('/assign-resource');
-        } else {
-            alert('Cannot edit a scheduled time');
-            return;
-        }
-
-        
-        //setCellSelection(cell);
-        console.log('values to push👇🏽');
-        
-        const cellID = {
-            row: cell.row.id,
-            column: cell.column.id
-        }
-        const alreadyExists = pendingCells.some(
-            (p) => p.row === cellID.row && p.column === cellID.column
-          );
-
-        if (!alreadyExists) {
-            setPendingCells( prev => [
-                ...prev,
-                {
-                    row: cellID.row,
-                    column: cellID.column,
-                }
-            ]);
-        }
-        
-        const cellInfo = {
-            id: cellID,
-            name: cell.row.original.name,
-            time: cell.column.id,
-        }
-        //This would be used if I wanted to prefill the form if user wanted to edit a pending job.
-        setDataSlot(cellInfo);
-    //This conditional statement controls if user tries to click any of the cells. If avaiable or pending, allow scheduling. Otherwise, don't.
-       
-    }
-    useEffect(() => {
-        if (pendingCells.length > 0) {
-            localStorage.setItem('pendingCells', JSON.stringify(pendingCells));
-        }
-
-    },[pendingCells]);
-    useEffect(()=> {
-        const saved = localStorage.getItem('pendingCells');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    setPendingCells(parsed);
-                }
-            } catch (error) {
-                console.error('Failed to parse pendingCells from localstorage', error);
+        try {
+            if (cell.getValue() === "Pending" || cell.getValue() === "Available") {
+                setCellSelection(true);
+                router.push('/assign-resource');
+            } else {
+                alert('Cannot edit a scheduled time');
+                return;
             }
+            
+            const cellID = {
+                row: cell.row.id,
+                column: cell.column.id
+            }
+            console.log(cellID.row,cellID.column,"above");
+           
+            const cellInfo = {
+                id: cellID,
+                name: cell.row.original.name,
+                time: cell.column.id
+            }
+            //This would be used if I wanted to prefill the form if user wanted to edit a pending job. But what we are interested in is the row and column for marking cells for Pending. We want to the user to provide valid field data for the rest.
+            setDataSlot(cellInfo);
+  
+        } catch (error) {
+            console.error('There was an error processing the input',error);
         }
-    },[]);
+    }
 
     return (
     <div>
@@ -147,10 +120,8 @@ const Table = () => {
                 return (
                         <tr key={row.id}>
                             {row.getVisibleCells().map(cell => {
-                            return <td key={cell.id} className={cell.getValue() === "Pending" || cell.getValue() === "Available" ? 'tw-cursor-pointer hover:tw-bg-orange-400' : '' } onClick={() => selectCell(cell)}>
-                            {
-                                pendingCells?.some(p => p.row === cell.row.id && p.column === cell.column.id) ? "Pending" : flexRender(cell.column.columnDef.cell, cell.getContext())
-                            }
+                               
+                            return <td key={cell.id} data-testid={`cell-${cell.id.replace(/:/g, '-')}`} className={cell.getValue() === "Pending" || cell.getValue() === "Available" ? 'tw-cursor-pointer hover:tw-bg-orange-400' : '' } onClick={() => selectCell(cell)}>
                         </td>
                             })}
                         </tr>
@@ -164,5 +135,3 @@ const Table = () => {
 
 export default Table;
  
-
-

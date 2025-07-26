@@ -4,10 +4,8 @@ import type {Resource, SlotKey, CellID } from '../app/components/types';
 import { newResources } from '@/app/components/Resources';
 import { CustomError } from '@/utils/CustomErrors';
 
-
 //created array to store jobs the user selected with a Scheduled status.
-const pendingJobs: Resource[] = [];
-
+const scheduleJobs: Resource[] = [];
 //This function is called for every job with a Scheduled Status inside the pendingJobs array I created. I want the job object and the slotKey from the loopThroughPendingJobs function. SlotKey is a string that I can parse and use to compare timing. If the current time is before or after the slotKeys, then change the statuses according. 
 function changeStatuses (job: Resource, slotKey: string) {
 
@@ -32,18 +30,21 @@ function changeStatuses (job: Resource, slotKey: string) {
         if (now >= startTime && now < endTime) {
           job[slotKey as SlotKey] = 'Busy';
         } else if (now < startTime) {
-          job[slotKey as SlotKey] = 'Scheduled';
+          //const removePendingStatus = getPendingJobs();
+            console.log(job[slotKey as SlotKey]);
+            console.log('here');
+            
+            job[slotKey as SlotKey] = 'Scheduled';
         } else {
             job[slotKey as SlotKey] = 'Available';
           }
-    }
+      }
   } catch (error) {
       if (error instanceof CustomError) {
         throw error;
       }
       throw new CustomError('There was a problem processing the current time or time slot', 500)
-  }
-  
+    }
 }
 
 function parseTime(time: string): Date {
@@ -58,7 +59,7 @@ function parseTime(time: string): Date {
         throw error;
       }
       throw new CustomError('There was a problem parsing the start and endtimes', 500);
-  }
+    }
   }
   //This function takes the pendingJobs array I created in this file. Because I want to store my own version of jobs selected for use. I go in and grab each object from the array and extract the object itself along with the slotKey and pass them to the changeStatues function, to change the status for each individual cell.
 
@@ -68,8 +69,8 @@ function parseTime(time: string): Date {
         throw new CustomError('Cannot find array or array is empty', 404);
       }
       //I verify what jobArray looks like before trying to loop through the whole thing
-      //console.log(jobArray);//Debugging
-      //console.log('^^^^whats currently in pendingJobs^^^^');
+      console.log(jobArray);//Debugging
+      console.log('^^^^whats currently in pendingJobs^^^^');
       for (let i = 0; i < jobArray.length; i++) {
         const alreadyDocumentedjob = jobArray[i];//this is an object but we want to tap into the keys of slots not id or name or row. 
         Object.keys(alreadyDocumentedjob).forEach((slotKey) => {
@@ -78,7 +79,7 @@ function parseTime(time: string): Date {
         //I want to have access each individual object inside the array I created and looping through each key
     
         //Before sending the slotKey, we want to make sure the value does not equal Available, cause if I select a time, the other slots would change to Pending even if I did not select them. In simple terms, when slotKey equals Availbable, it tells me that the user has not selected that time yet.
-          if (alreadyDocumentedjob[slotKey as SlotKey] === 'Available') {
+          if (alreadyDocumentedjob[slotKey as SlotKey] === 'Available' || alreadyDocumentedjob[slotKey as SlotKey] === 'Pending' ) {
             return;
           } 
         //Sending over the individual object, and the slotKey to changeStatus to parse the data and check the status depending on the current time
@@ -100,23 +101,23 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       throw new CustomError('Some or all of the necessary information is missing', 404);
     }
     //Debugging
-    console.log(pendingJobs);
+    console.log(scheduleJobs);
     console.log('currently in array in changeStatus function');   
     
     //This block works. If user wants to go back into a previously selected cell and change the job and slot, then it will be removed from the array along with a status change back to Available. If id.row,the cell in which the user selected is not equal to the job.row, every job has a row property, then we knwo the user went into a cell but decided to change jobs and possibly a time slot. Which has to mean, the previous selected was stored in the array somewhere.
     if (id.row !== job.row) {
       //So we want to find the object
-      const foundMatchingDocumentedJob = pendingJobs.findIndex((match) => match.row === id.row);
+      const foundMatchingDocumentedJob = scheduleJobs.findIndex((match) => match.row === id.row);
       console.log(foundMatchingDocumentedJob);//confirming we get the right job
       //If it does exist then we want to find where the column in which the cell was selected along with the key that we looped through to see if they match and if the value of the property is Pending. If it is, then we want to change it back to Available 
       if (foundMatchingDocumentedJob !== -1) {
 
-        Object.keys(pendingJobs[foundMatchingDocumentedJob]).forEach((pending) => {
+        Object.keys(scheduleJobs[foundMatchingDocumentedJob]).forEach((pending) => {
           if (pending === 'id' || pending === 'name' || pending === 'row') return;
 
-          if (id.column === pending && !(pendingJobs[foundMatchingDocumentedJob][pending as SlotKey] === 'Available')) {
-            pendingJobs[foundMatchingDocumentedJob][id.column as SlotKey] = 'Available';
-            console.log(pendingJobs[foundMatchingDocumentedJob][pending as SlotKey],'the new status');
+          if (id.column === pending && !(scheduleJobs[foundMatchingDocumentedJob][pending as SlotKey] === 'Available')) {
+            scheduleJobs[foundMatchingDocumentedJob][id.column as SlotKey] = 'Available';
+            console.log(scheduleJobs[foundMatchingDocumentedJob][pending as SlotKey],'the new status');
             console.log('changed to Available^^^^^');
             changeStatuses(job, slotKey);//without this line, the status that changed from Pending back to Availbale will eventually happen, but after a couple rounds of Cron. But to change it in the heat of the moment, I called a function to do just that
             }
@@ -153,28 +154,28 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       const jobStatusChanged = updateStatusOnSelection(job, timeSlot, id);
       //console.log('<<<belongs to addToArray function>>');
   
-      console.log( updateStatusOnSelection(job, timeSlot, id));//Debugging. Making sure I get back what I expect from updateStatusOnSelection
+      console.log(updateStatusOnSelection(job, timeSlot, id));//Debugging. Making sure I get back what I expect from updateStatusOnSelection
       console.log('^^^what changeStatus function returned^^^');
 
       //If after a status is changed, if there are no pending slots for a job, then delete it from the array because we will eventually send the array to the loopThroughPendingJobs function which will look for any job with a pending status and change the status based on the relative time. This part is very important given that we are expected a return from updateStatusOnSelection.
-      pendingJobs.forEach((toDelete, index) => {
+      scheduleJobs.forEach((toDelete, index) => {
         //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any pending slots, get rid of them.
         const slotKeys = Object.keys(toDelete).filter(key => key !== 'id' && key !== 'name' && key !== 'row');
         const allAvailable = slotKeys.every(key => toDelete[key as SlotKey] === 'Available');
         if (allAvailable) {
-          pendingJobs.splice(index, 1);
+          scheduleJobs.splice(index, 1);
         }
       });
       //Because Cron every few seconds we don't want to keep pushing the same object to the array. Instead we want to check if it already exists. If it does, then we want to loop through the whole array looking for any pending statuses. That is what loopThroughPendingJobs function is doing 
-      const isExistingJob = pendingJobs.find( obj => obj.id === jobStatusChanged.id); 
+      const isExistingJob = scheduleJobs.find( obj => obj.id === jobStatusChanged.id); 
       //working so far
       //If the id of the job/object does not exist then push it to array
       if (!isExistingJob) {
         // Clone the job object so we can mutate it independently
-          pendingJobs.push(jobStatusChanged);
+        scheduleJobs.push(jobStatusChanged);
         // If it does exist, then
       } 
-      loopThroughPendingJobs(pendingJobs);
+      loopThroughPendingJobs(scheduleJobs);
     } catch (error) {
         if (error instanceof CustomError) {
           throw error;

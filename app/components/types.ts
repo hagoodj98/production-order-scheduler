@@ -1,3 +1,4 @@
+import React from "react";
 
 export type SlotStatus = 'Pending' | 'Available' | 'Scheduled' | 'Busy';
 
@@ -30,6 +31,11 @@ export type MapPending = {
   column: string,
 }
 
+export type FormInteraction = {
+  timeslot?:string;
+  resource?:string
+};
+
 export type Resource = {
   id: number,
   name: string,
@@ -50,8 +56,8 @@ export type Slot = {
     row: string,
     column: string
   },
-  name: string,
-  time: string
+  time: string,
+  name: string
 }
 
 export type AppContextType = {
@@ -64,6 +70,8 @@ export type AppContextType = {
 export type SlotContextType = {
   dataSlot: Slot,
   setDataSlot: React.Dispatch<React.SetStateAction<Slot>>;
+  formInteraction: FormInteraction;
+  setFormInteraction: React.Dispatch<React.SetStateAction<FormInteraction>>
 }
 export type ErrorMessage = {
   field: string,

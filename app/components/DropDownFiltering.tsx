@@ -1,6 +1,6 @@
 import React from 'react'
 import { Table } from './types';
-import { Column,Cell } from '@tanstack/react-table'
+import { Column } from '@tanstack/react-table'
 
 type DropDownFilteringProps = {
     column: Column<Table, unknown>;

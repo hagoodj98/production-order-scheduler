@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import type { TimeJobSlot, ErrorMessage } from './types';
+import type { TimeJobSlot, ErrorMessage, Slot } from './types';
 import { useAppContext, useSlotContext } from '../context';
 import * as z from "zod/v4"
 import { useRouter } from "next/navigation";
@@ -24,7 +24,7 @@ const ProductionForm = () => {
     const router = useRouter();
     const { data, setData } = useAppContext();
     const [timeJob, setTimeJob] = useState<TimeJobSlot>({id: {row: '', column: ''}, timeslot: "",  resource: ""});
-    const {dataSlot} = useSlotContext();
+    const {dataSlot, setDataSlot, cellSlotArray, setCellSlotArray} = useSlotContext();
     const [errors, setErrors]= useState<ErrorMessage[]>([]);
     const [errorStatus, setErrorStatus]= useState('');
 
@@ -32,13 +32,13 @@ const ProductionForm = () => {
         //Prevent the default behavior which is a automatic refresh when the form is submitted
         event.preventDefault();
         //We want to take the shape of TimeSlot that we set in the types.ts file and plug in the values from the form
-       
         try {
             setErrors([]);
             console.log('access the cell data^^^');
 
             const timeSlot: TimeJobSlot= userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
             //making an api call to process the data from form
+            
             const response = await fetch('/api/schedule-task', {
                 method: 'POST',
                 headers: {
@@ -73,8 +73,6 @@ const ProductionForm = () => {
               }
         }
     }
-
-
     //This function happens if there was a change made to the form. If user decides to make any changes, keep the previous value and change the field being changed(Lines 60-65).
     const handleChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value}= event.target;
@@ -86,18 +84,33 @@ const ProductionForm = () => {
             }
         });
     }
-
 //This block depends on any changes made to timeJob. 
 useEffect(() => {
-    
     //I want to share the current state of each field so i can have access to the value in the Table component. That way I can compare values and determine when to change status to Pending instead of changing the status to Pending just by clicking the cell.
     console.log('watching change');
-   console.log(dataSlot.id);
+    console.log(dataSlot.id);
    
    //If both fields aren't empty, make sure they are valid before hitting the mark-pending endpoint, which handles changes cells to Pending without submitting form
     if (timeJob.timeslot !== "" && timeJob.resource !== "") {
-        const timeSlot: TimeJobSlot= userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
-
+        const timeSlot: TimeJobSlot = userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
+        //In order to be able to go into a pending cell with its previous entries, I created an array containing the cell id, resource name and timeslot. If the cell already exist in the array simply dont add it but instead update the existing cells' properties. That way we can go into any cell and see our last input before deciding to submit the job.
+        const cellSlotAlreadyExist = cellSlotArray.some((cellField) => 
+            cellField.id.row === dataSlot.id.row &&
+            cellField.id.column === dataSlot.id.column 
+        );
+        console.log(cellSlotAlreadyExist);
+        if (!cellSlotAlreadyExist) {
+            setCellSlotArray(prev => [
+                ...prev,
+                timeSlot
+            ]); 
+        } else {
+            const editExistingPendingJob = cellSlotArray.findIndex(pendingJob => pendingJob.id.row === timeSlot.id.row && pendingJob.id.column === timeSlot.id.column);
+            if (editExistingPendingJob !== -1) {
+                cellSlotArray[editExistingPendingJob].resource = timeSlot.resource;
+                cellSlotArray[editExistingPendingJob].timeslot = timeSlot.timeslot;
+            }
+        }
         const sendPendingStatus = async () => {
             try {
                 const response = await fetch('/api/mark-pending', {
@@ -125,6 +138,19 @@ useEffect(() => {
     }
    
 },[timeJob])
+
+useEffect(() => {
+    if (dataSlot?.name !== "" && dataSlot?.time !== "") {
+        setTimeJob({
+            id: {
+                row: dataSlot.id.row,
+                column: dataSlot.id.column,
+            },
+            timeslot: dataSlot.time,
+            resource: dataSlot.name
+        })
+    }
+},[dataSlot]);
 
   return (
     <div>

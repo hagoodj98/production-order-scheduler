@@ -20,27 +20,32 @@ export async function GET() {
     console.log(availability);//checking to see whats currently existing inside newResources
     console.log('what mark-pending sees before change');
     //Looping through the pending array I need the timeslot, which is the actual time the user selected. Need the resource of course to get the job object from the newResources array
-    pending.forEach(({ timeslot, resource }) => {
+    pending.forEach(({ id, timeslot, resource }) => {
+        console.log(pending);
+        console.log('inside pending array');
+        const rowMatch = availability.find(job => job.row === id.row);
+        console.log(rowMatch);
+        console.log('match');
+        if (rowMatch && isSlotKey(id.column)) {
+            rowMatch[id.column] = 'Pending';
+            
+        }
+        
+        /*
         const rowMatch = availability.find(job => job.name === resource);//return an object/s from newResources
         console.log(rowMatch);//checking to see if i get what i asked
         console.log('pending job by name');
-        if (rowMatch && isSlotKey(timeslot)) {
+        if (rowMatch && isSlotKey(id.column)) {
             //if the timeslot already has a Scheduled status, simply ignore but otherwise change to Pending
             if (rowMatch[timeslot] === 'Scheduled') {
                 return;
-            } else{
-                rowMatch[timeslot] = 'Pending'; // Update specific timeslot to "Pending"
+            } else {
+                rowMatch[id.column] = 'Pending'; // Update specific timeslot to "Pending"
             }
         }
+            */
     });
-
-
-    
-
-
     console.log(availability);
     console.log('what mark-pending sees after the schedule change');
-    
-    
     return NextResponse.json({availability});
 }

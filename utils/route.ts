@@ -21,7 +21,7 @@ let pendingJobs: TimeJobSlot[] = [];
 export const addPendingJob = (job: TimeJobSlot) => {
   
   const exists = pendingJobs.some(p =>
-    p.id.row === job.id.row && p.id.column === job.id.column && job.timeslot === p.timeslot
+    p.id.row === job.id.row && p.id.column === job.id.column
   );
 
   if (!exists) {

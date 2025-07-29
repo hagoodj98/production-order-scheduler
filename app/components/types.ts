@@ -70,8 +70,8 @@ export type AppContextType = {
 export type SlotContextType = {
   dataSlot: Slot,
   setDataSlot: React.Dispatch<React.SetStateAction<Slot>>;
-  formInteraction: FormInteraction;
-  setFormInteraction: React.Dispatch<React.SetStateAction<FormInteraction>>
+  cellSlotArray: TimeJobSlot[];
+  setCellSlotArray: React.Dispatch<React.SetStateAction<TimeJobSlot[]>>,
 }
 export type ErrorMessage = {
   field: string,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from "react";
-import type { Table, AppContextType, SlotContextType, Slot, MapPending, FormInteraction } from '../components/types'
+import type { Table, AppContextType, SlotContextType, Slot, MapPending,  TimeJobSlot } from '../components/types'
 import { newResources } from "../components/Resources";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -37,10 +37,10 @@ export function SlotWrapper({children} : {
         name: "",
         time: ''
     });
-    const [formInteraction, setFormInteraction] = useState<FormInteraction>({timeslot:"", resource: ''});
+    const [cellSlotArray, setCellSlotArray] = useState<TimeJobSlot[]>([]);
 
     return (
-        <SlotContext.Provider value={{dataSlot, setDataSlot, formInteraction, setFormInteraction }}>
+        <SlotContext.Provider value={{dataSlot, setDataSlot, cellSlotArray, setCellSlotArray }}>
             {children}
         </SlotContext.Provider>
 

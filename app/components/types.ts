@@ -31,10 +31,10 @@ export type MapPending = {
   column: string,
 }
 
-export type FormInteraction = {
-  timeslot?:string;
-  resource?:string
-};
+export type AvailableSlotPair = {
+  name: string,
+  value: number
+}
 
 export type Resource = {
   id: number,
@@ -77,3 +77,14 @@ export type ErrorMessage = {
   field: string,
   message: string
 }
+
+export type CustomError = {
+  message: string,
+  status: number
+}
+
+export type PollResourceResponse = {
+  availability: Table[],
+  pendingCellsArray: TimeJobSlot[]
+};
+export type FormErrors = ErrorMessage[] | CustomError;

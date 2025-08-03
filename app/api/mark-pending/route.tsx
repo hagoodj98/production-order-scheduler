@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CustomError } from '@/utils/CustomErrors';
 import * as z from 'zod/v4';
 import type { TimeJobSlot, ErrorMessage } from "@/app/components/types";
-import { addPendingJob, getPendingJobs } from "@/utils/route";
+import { addPendingJobToArrays, getPendingJobs } from "@/utils/route";
 
 //validating data before use
 const cellID = z.object({
@@ -23,9 +23,10 @@ export async function POST(req: NextRequest) {
             throw new CustomError('Missing input information', 404);
         }
         const raw = await req.json();
+
         //The object.key is a safe guard to make sure there is at least one 
-        if (Object.keys(raw).length > 0) {
-            const validData = await userSelection.parseAsync(raw);
+        if (Object.keys(raw['timeSlot']).length > 0) {
+            const validData = await userSelection.parseAsync(raw['timeSlot']);
             const body: TimeJobSlot = validData;
             console.log(body);//debugging
             /**
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
                 }
              */
             //The addPendingJob function passes in the payload and simply pushes it to an array if it does not exist.
-            addPendingJob(body);
+            addPendingJobToArrays(body);
         }
 
         return NextResponse.json({ pending: getPendingJobs()});

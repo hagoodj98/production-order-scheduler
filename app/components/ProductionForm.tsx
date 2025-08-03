@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Button from 'react-bootstrap/Button';
+import { useEffect, useState } from 'react';
+import Button from "@mui/material/Button";
 import Form from 'react-bootstrap/Form';
-import type { TimeJobSlot, ErrorMessage, Slot } from './types';
+import type { TimeJobSlot, ErrorMessage, FormErrors } from './types';
 import { useAppContext, useSlotContext } from '../context';
 import * as z from "zod/v4"
 import { useRouter } from "next/navigation";
 import slots from './dataslots';
+import Link from 'next/link';
+import { CustomError } from '@/utils/CustomErrors';
 
 const ProductionForm = () => {
 
@@ -15,7 +17,6 @@ const ProductionForm = () => {
         row: z.string(),
         column: z.string()
     })
-
     const userSelection = z.object({
         id: cellID,
         timeslot: z.string().min(1,'Please select timeSlot'),
@@ -25,7 +26,7 @@ const ProductionForm = () => {
     const { data, setData } = useAppContext();
     const [timeJob, setTimeJob] = useState<TimeJobSlot>({id: {row: '', column: ''}, timeslot: "",  resource: ""});
     const {dataSlot, setDataSlot, cellSlotArray, setCellSlotArray} = useSlotContext();
-    const [errors, setErrors]= useState<ErrorMessage[]>([]);
+    const [errors, setErrors]= useState<FormErrors>([]);
     const [errorStatus, setErrorStatus]= useState('');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -34,11 +35,8 @@ const ProductionForm = () => {
         //We want to take the shape of TimeSlot that we set in the types.ts file and plug in the values from the form
         try {
             setErrors([]);
-            console.log('access the cell data^^^');
-
             const timeSlot: TimeJobSlot= userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
             //making an api call to process the data from form
-            
             const response = await fetch('/api/schedule-task', {
                 method: 'POST',
                 headers: {
@@ -46,11 +44,16 @@ const ProductionForm = () => {
                 },
                 body: JSON.stringify(timeSlot), 
             });
-             
             if (!response.ok) {
                 const errorResponse = await response.json();
-                if (response.status === 404 || errorResponse.fieldErrors) {
+                console.log(errorResponse);
+                if (errorResponse.fieldErrors) {
                     setErrors(errorResponse.fieldErrors);
+                } else if (errorResponse.error && errorResponse.status) {
+                    setErrors({
+                        message: errorResponse.error,
+                        status: errorResponse.status
+                    });
                 } else {
                     setErrorStatus('error');
                 }
@@ -68,7 +71,18 @@ const ProductionForm = () => {
                     message: issue.message
                 }));
                 setErrors(fieldErrors);
-            } else {
+                return;
+            } 
+            if (error instanceof CustomError) {
+                const customError: CustomError = error;
+                setErrors({
+                    message:customError.message,
+                    status: customError.statusCode
+                }); // you're already using FormErrors union type
+                return;
+            }
+            
+            else {
                 setErrorStatus('error');
               }
         }
@@ -84,110 +98,106 @@ const ProductionForm = () => {
             }
         });
     }
-//This block depends on any changes made to timeJob. 
-useEffect(() => {
-    //I want to share the current state of each field so i can have access to the value in the Table component. That way I can compare values and determine when to change status to Pending instead of changing the status to Pending just by clicking the cell.
-    console.log('watching change');
-    console.log(dataSlot.id);
-   
-   //If both fields aren't empty, make sure they are valid before hitting the mark-pending endpoint, which handles changes cells to Pending without submitting form
-    if (timeJob.timeslot !== "" && timeJob.resource !== "") {
-        const timeSlot: TimeJobSlot = userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
-        //In order to be able to go into a pending cell with its previous entries, I created an array containing the cell id, resource name and timeslot. If the cell already exist in the array simply dont add it but instead update the existing cells' properties. That way we can go into any cell and see our last input before deciding to submit the job.
-        const cellSlotAlreadyExist = cellSlotArray.some((cellField) => 
-            cellField.id.row === dataSlot.id.row &&
-            cellField.id.column === dataSlot.id.column 
-        );
-        console.log(cellSlotAlreadyExist);
-        if (!cellSlotAlreadyExist) {
-            setCellSlotArray(prev => [
-                ...prev,
-                timeSlot
-            ]); 
-        } else {
-            const editExistingPendingJob = cellSlotArray.findIndex(pendingJob => pendingJob.id.row === timeSlot.id.row && pendingJob.id.column === timeSlot.id.column);
-            if (editExistingPendingJob !== -1) {
-                cellSlotArray[editExistingPendingJob].resource = timeSlot.resource;
-                cellSlotArray[editExistingPendingJob].timeslot = timeSlot.timeslot;
-            }
-        }
-        const sendPendingStatus = async () => {
-            try {
-                const response = await fetch('/api/mark-pending', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(timeSlot),
-                });
-                if (!response.ok) {
-                    console.error('Failed to mark pending');
-                } else {
-                    console.log('Marked slot as Pending on backend');
-                }
-            } catch (error) {
-                console.error('Network error marking pending:', error);
-                if (error instanceof z.ZodError) {
-                    const fieldErrors : ErrorMessage[] = error.issues.map(issue => ({
-                        field: issue.path.join('.'),
-                        message: issue.message
-                    }));
-                    setErrors(fieldErrors);
-                } 
-            }
-        };
-        sendPendingStatus();
-    }
-   
-},[timeJob])
+    //This block depends on any changes made to timeJob. 
+    useEffect(() => {
+        //I want to share the current state of each field so i can have access to the value in the Table component. That way I can compare values and determine when to change status to Pending instead of changing the status to Pending just by clicking the cell.
+        console.log('watching change');
+        console.log(dataSlot.id);
+    //If both fields aren't empty, make sure they are valid before hitting the mark-pending endpoint, which handles changes cells to Pending without submitting form
+        if (timeJob.timeslot !== "" && timeJob.resource !== "") {
+            const timeSlot: TimeJobSlot = userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
 
-useEffect(() => {
-    if (dataSlot?.name !== "" && dataSlot?.time !== "") {
-        setTimeJob({
-            id: {
-                row: dataSlot.id.row,
-                column: dataSlot.id.column,
-            },
-            timeslot: dataSlot.time,
-            resource: dataSlot.name
-        })
-    }
-},[dataSlot]);
+            const sendPendingStatus = async () => {
+                try {
+                    const response = await fetch('/api/mark-pending', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({timeSlot}),
+                    });
+                    if (!response.ok) {
+                        console.error('Failed to mark pending');
+                    } else {
+                        console.log('Marked slot as Pending on backend');
+                    }
+                } catch (error) {
+                    console.error('Network error marking pending:', error);
+                    if (error instanceof z.ZodError) {
+                        const fieldErrors : ErrorMessage[] = error.issues.map(issue => ({
+                            field: issue.path.join('.'),
+                            message: issue.message
+                        }));
+                        setErrors(fieldErrors);
+                        
+                    } 
+                }
+            };
+            sendPendingStatus();
+        }
+    
+    },[timeJob]);
+//This prefills the fields based on what the user inputed last without submitting
+    useEffect(() => {
+        if (dataSlot?.name !== "" && dataSlot?.time !== "") {
+            setTimeJob({
+                id: {
+                    row: dataSlot.id.row,
+                    column: dataSlot.id.column,
+                },
+                timeslot: dataSlot.time,
+                resource: dataSlot.name
+            })
+        }
+    },[dataSlot]);
+
 
   return (
-    <div>
+    <div className='tw-flex tw-flex-col tw-justify-evenly'>
         {errorStatus === 'error' &&
         <div className='tw-text-red-500'>
             <p>There was an internal error. Try again later</p>
         </div>
         }
-        <Form onSubmit={handleSubmit}>
-            <Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
-                <option value="">Choose time slot</option>
-                {slots.map((slot, index) => {
-                    return(
-                        <option key={index} value={slot.slot}>{slot.slot}</option>
-                    )
-                })}
-            </Form.Select>
-            {errors.find(err => err.field ==='timeslot') && (
-                <div className='tw-text-red-500'>
-                    {errors.find(err => err.field === 'timeslot')?.message}
-                </div>
-            )}
-           
-            <Form.Select name='resource' onChange={handleChange} value={timeJob.resource} >
-                <option value="">Choose job</option>
-                <option value="CNC Machine 1">CNC Machine 1</option>
-                <option value="Assembly Line A">Assembly Line A</option>
-                <option value="Assembly Line B">Assembly Line B</option>
-                <option value="Assembly Line C">Assembly Line C</option>
-            </Form.Select>
-            {errors.find(err => err.field === 'resource' ) && (
-                <div className='tw-text-red-500'>
-                    {errors.find(err => err.field === 'resource')?.message}
-                </div>
-            )}
-            <Button variant="primary" type="submit">Submit</Button>
-        </Form>
+        {!Array.isArray(errors) && errors?.message && (
+            <div className="tw-text-red-500 tw-text-base tw-text-center tw-mt-10">
+                {errors.message}
+            </div>
+        )}
+        <div className=' tw-mt-28'>
+            <div>
+                <h2 className='tw-text-center tw-text-[#FFBB28]'>Choose a job</h2>
+            </div>
+            <Form className='tw-mx-auto tw-w-1/2 ' onSubmit={handleSubmit}>
+                <Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
+                    <option value="">Choose time slot</option>
+                    {slots.map((slot, index) => {
+                        return(
+                            <option key={index} value={slot.slot}>{slot.slot}</option>
+                        )
+                    })}
+                </Form.Select>
+                {Array.isArray(errors) && errors.find(err => err.field ==='timeslot') && (
+                    <div className='tw-text-red-500 tw-text-sm'>
+                        {errors.find(err => err.field === 'timeslot')?.message}
+                    </div>
+                )}
+                <Form.Select name='resource' className='tw-mt-3' onChange={handleChange} value={timeJob.resource} >
+                    <option value="" className='tw-text-stone-400'>Choose resource</option>
+                    <option value="CNC Machine 1">CNC Machine 1</option>
+                    <option value="Assembly Line A">Assembly Line A</option>
+                    <option value="Assembly Line B">Assembly Line B</option>
+                    <option value="Assembly Line C">Assembly Line C</option>
+                </Form.Select>
+                {Array.isArray(errors) && errors.find(err => err.field ==='resource') && (
+                    <div className='tw-text-red-500 tw-text-sm'>
+                        {errors.find(err => err.field === 'resource')?.message}
+                    </div>
+                )}
+                <Button type="submit"  sx={{margin: 'auto', width: '100%', marginTop: 3 }}  variant="contained" size='small' >Submit</Button>
+            </Form>
+        </div>
+        <div className='tw-mx-auto tw-mt-28'>
+            <Link href="/available-slots"><Button  size='small'  variant="contained">View Orders</Button></Link>
+        </div>
     </div>
   )
 }

@@ -25,7 +25,7 @@ function changeStatuses (job: Resource, slotKey: string) {
     */
     if (now > endTime) { //This takes care of if the user tries to schedule a slot when that slot time has already passed.
       console.log('this is pasted');
-      throw new CustomError('This time has passed. You cannot schedule', 400);
+      throw new CustomError('This time has passed. You cannot schedule. Come back tomorrow', 400);
     } else {
         if (now >= startTime && now < endTime) {
           job[slotKey as SlotKey] = 'Busy';
@@ -33,7 +33,6 @@ function changeStatuses (job: Resource, slotKey: string) {
           //const removePendingStatus = getPendingJobs();
             console.log(job[slotKey as SlotKey]);
             console.log('here');
-            
             job[slotKey as SlotKey] = 'Scheduled';
         } else {
             job[slotKey as SlotKey] = 'Available';
@@ -46,7 +45,6 @@ function changeStatuses (job: Resource, slotKey: string) {
       throw new CustomError('There was a problem processing the current time or time slot', 500)
     }
 }
-
 function parseTime(time: string): Date {
   try {
     //Taking the time from the user and breaking it at the colon and take each item in the array and convert it to a Number. Because the setHours method expects numbers, not strings. Then set the time using the method
@@ -133,7 +131,7 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       //If the job and id rows match, then the user went into the same row but selected a different cell. So fill the request like normal
         changeStatuses(job, slotKey);
       }
-      //We want to return job with the appriopriate status before pushing to array
+      //We want to return job with the appropriate status before pushing to array
     return job;  
   } catch (error) {
       if (error instanceof CustomError) {
@@ -142,7 +140,6 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       throw new CustomError('There was a problem in determining the order in which cells were selected', 500);
     }
 }
-
   function addToArray(job: Resource, timeSlot: string, id: CellID) { 
     try {
       if (!(job || timeSlot || id)) {
@@ -154,7 +151,7 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       const jobStatusChanged = updateStatusOnSelection(job, timeSlot, id);
       //console.log('<<<belongs to addToArray function>>');
   
-      console.log(updateStatusOnSelection(job, timeSlot, id));//Debugging. Making sure I get back what I expect from updateStatusOnSelection
+      console.log(jobStatusChanged);//Debugging. Making sure I get back what I expect from updateStatusOnSelection
       console.log('^^^what changeStatus function returned^^^');
 
       //If after a status is changed, if there are no pending slots for a job, then delete it from the array because we will eventually send the array to the loopThroughPendingJobs function which will look for any job with a pending status and change the status based on the relative time. This part is very important given that we are expected a return from updateStatusOnSelection.
@@ -202,8 +199,18 @@ export const myTasks= (timeSlot: string, resource: string, id: CellID ): void =>
     const requestedJob = newResources.filter((job) => job.name === resource);
     //Selecting the object and renaming it to job
     const job = requestedJob[0]; //Fresh off the press. holds all keys
-    //sending the object and the timeslot along with cell info for processing. 
-    addToArray(job, timeSlot, id);
+    //Before calling any functions I want to check the incoming data, if an incoming job wants to set a slot to another slot that is taken. We throw an error if so.
+    const checkJobWithScheduled = scheduleJobs.find((existJob) => existJob.name === job.name && existJob[timeSlot as SlotKey] === 'Scheduled');
+    console.log(checkJobWithScheduled);
+    console.log(scheduleJobs);
+    if (checkJobWithScheduled === undefined) {
+         //sending the object and the timeslot along with cell info for processing. 
+      addToArray(job, timeSlot, id);
+      //Once the job has been processed, we want Cron to stop sending that job
+      setLatestJob({id: {row: '', column: ''}, timeSlot: '', resource: '' });
+    } else {
+        throw new CustomError('Slot is already filled. Please choose another!', 400);
+    }
   } catch (error) {
       if (error instanceof CustomError) {
         throw error;
@@ -211,8 +218,8 @@ export const myTasks= (timeSlot: string, resource: string, id: CellID ): void =>
       if (error instanceof Error) {
         throw new CustomError(`Error retrieving information that was submitted: ${error.message}`, 500);
       } else {
-        throw new CustomError('An unknown error occurred', 500);
+          throw new CustomError('An unknown error occurred', 500);
       }
-  }
+    }
 }
 

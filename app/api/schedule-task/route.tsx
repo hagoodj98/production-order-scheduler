@@ -18,13 +18,11 @@ const userSelectionSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-
     try {
         if (!req) {
             throw new CustomError('Missing input information', 404);
         }
         const raw = await req.json();
-
         if (Object.keys(raw).length > 0) {
             const validData = await userSelectionSchema.parseAsync(raw);
             //TimeSlot expects an object. So body will be an object
@@ -36,25 +34,42 @@ export async function POST(req: NextRequest) {
                 const { row, column } = body.id;
                 //Save the input so cron can later retrieve it. If data is not saved then timeslot and resource will be undefined from Cron's perspective, because it is sending an empty payload
                 setLatestJob({id:{row, column}, timeSlot: body.timeslot, resource: body.resource });
-                return NextResponse.json({ message: 'Input saved' });//debugging
+               
+                try {
+                    // ✅ Actually run the scheduling logic here
+                    myTasks(body.timeslot, body.resource, body.id);
+                    return NextResponse.json({ availabity: newResources, message: 'Task ran successfully' }, { status: 200 });
+                  } catch (err) {
+                    if (err instanceof CustomError) {
+                          return new NextResponse( JSON.stringify({ error: err.message, status: err.statusCode}), {status: err.statusCode});
+                    }
+                    return NextResponse.json({ message: 'Unknown error in task processing' }, { status: 500 });
+                  }
             }
         }
         // Retrieve and use the most up-to-date job input for cron. Because cron makes an API request to this endpoint with an empty body
         const {id, timeSlot, resource } = getLatestJob();
         if (id && timeSlot && resource) {
-            console.log('🔄 Reusing saved job:', {id, timeSlot, resource });//debugging
-            myTasks( timeSlot, resource, id);
+            try {
+                console.log('🔄 Reusing saved job:', {id, timeSlot, resource });//debugging
+                myTasks( timeSlot, resource, id);
+            } catch (err) {
+                if (err instanceof CustomError) {
+                    console.log('catching the error in schedule-task');
+                    
+                    return NextResponse.json({message: err.message}, {status: err.statusCode});
+                } 
+                return NextResponse.json({ message: 'Unknown error in task processing' }, { status: 500 });
+            }
+          
           }
-          console.log(newResources);//Debugging I expect to see what myTasks called
+          //console.log(newResources);//Debugging I expect to see what myTasks called
         return NextResponse.json({ availabity: newResources, message: 'Task ran with latest job'}, {status: 200 });
     } catch (error) {
         console.error(error);
         //We want to have the same error structure as the frontend on the backend and return it.
         if (error instanceof CustomError) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: error.statusCode }
-              );
+            return new NextResponse( JSON.stringify({ error: error.message, status: error.statusCode}), {status: error.statusCode});
         }
         if (error instanceof z.ZodError) {
             // error.issues contains validation errors for each field

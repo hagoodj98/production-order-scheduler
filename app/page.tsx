@@ -1,6 +1,7 @@
-import { createColumnHelper, flexRender, getCoreRowModel, RowSelectionState, useReactTable } from "@tanstack/react-table";
 import Table from "./components/Table";
 import Link from "next/link";
+import Recharts from "./components/Recharts";
+import NavButton from "./components/NavButton";
 
 
 export default function Home () {
@@ -8,8 +9,9 @@ export default function Home () {
   return (
 
     <div>
-      <h1>Hello world</h1>
-      <Table />
+      <h2 className="tw-p-5 tw-text-[#FFBB28]">Dashboard</h2>
+      <Recharts />
+      <NavButton />
     </div>
   );
 }

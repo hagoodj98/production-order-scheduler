@@ -1,4 +1,3 @@
-import Link from "next/link";
 import ProductionForm from "../components/ProductionForm";
 
 const page = () => {
@@ -9,4 +8,4 @@ const page = () => {
   )
 }
 
-export default page
+export default page;

@@ -5,7 +5,7 @@ import { newResources } from '../app/components/Resources';
 import { CustomError } from '../utils/CustomErrors';
 
 //created array to store jobs the user selected with a Scheduled status.
- export const scheduleJobs: Resource[] = [];
+export const scheduleJobs: Resource[] = [];
 //This function is called for every job with a Scheduled Status inside the pendingJobs array I created. I want the job object and the slotKey from the loopThroughPendingJobs function. SlotKey is a string that I can parse and use to compare timing. If the current time is before or after the slotKeys, then change the statuses according. 
 function changeStatuses (job: Resource, slotKey: string) {
 
@@ -23,34 +23,29 @@ function changeStatuses (job: Resource, slotKey: string) {
     console.log('startTime', startTime.toLocaleTimeString());
     console.log('endTime', endTime.toLocaleTimeString());
     */
-    /*if (now > endTime) { //This takes care of if the user tries to schedule a slot when that slot time has already passed.
-      console.log('this is pasted');
-      throw new CustomError('This time has passed. You cannot schedule. Come back tomorrow', 400);
-    } else {*/
-        if (now >= startTime && now < endTime) {
-          job[slotKey as SlotKey] = 'Busy';
-        } else if (now < startTime) {
-          //const removePendingStatus = getPendingJobs();
-            console.log(job[slotKey as SlotKey]);
-            console.log('here');
-            job[slotKey as SlotKey] = 'Scheduled';
-        } else {
-            job[slotKey as SlotKey] = 'Available';
-            scheduleJobs.forEach((toDelete, index) => {
-              //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any pending slots, get rid of them.
-              const slotKeys = Object.keys(toDelete).filter(key => key !== 'id' && key !== 'name' && key !== 'row');
-              const allAvailable = slotKeys.every(key => toDelete[key as SlotKey] === 'Available');
-              if (allAvailable) {
-                scheduleJobs.splice(index, 1);
-              }
-            });
+    if (now >= startTime && now < endTime) {
+      job[slotKey as SlotKey] = 'Busy';
+    } else if (now < startTime) {
+      //const removePendingStatus = getPendingJobs();
+        console.log(job[slotKey as SlotKey]);
+        console.log('here');
+        job[slotKey as SlotKey] = 'Scheduled';
+    } else {
+        job[slotKey as SlotKey] = 'Available';
+        scheduleJobs.forEach((toDelete, index) => {
+          //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any pending slots, get rid of them.
+          const slotKeys = Object.keys(toDelete).filter(key => key !== 'id' && key !== 'name' && key !== 'row');
+          const allAvailable = slotKeys.every(key => toDelete[key as SlotKey] === 'Available');
+          if (allAvailable) {
+            scheduleJobs.splice(index, 1);
           }
-      //}
+        });
+      }
   } catch (error) {
       if (error instanceof CustomError) {
         throw error;
       }
-      throw new CustomError('There was a problem processing the current time or time slot', 500)
+      throw new CustomError('There was a problem processing the current time or time slot', 500);
     }
 }
 export const parseTime = (time: string): Date => {

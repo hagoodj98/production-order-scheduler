@@ -1,5 +1,6 @@
 import { TimeSlots } from "./types";
 
+//Add columns here. Below are some examples but follow the same structure of each object
 const slots: TimeSlots[] = [
     {
         id: 1,

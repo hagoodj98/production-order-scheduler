@@ -3,7 +3,7 @@ import type {TimeJobSlot, ErrorMessage, Resource} from '../../components/types';
 import { myTasks, loopThroughPendingJobs,parseTime  } from '@/tasks/MyTasks';
 import { CustomError } from '@/utils/CustomErrors';
 import { newResources } from '@/app/components/Resources';
-import { setLatestJob, getLatestJob } from '@/utils/route'
+import { setLatestJob, getLatestJob } from '@/utils/route';
 import * as z from 'zod/v4';
 import slots from '@/app/components/dataslots';
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
                         return NextResponse.json({ message: 'Unknown error in task processing' }, { status: 500 });
                     }
                 } else {
-                    throw new CustomError('This time slot does not exist', 400)
+                    throw new CustomError('This time slot does not exist', 400);
                 }
             }
         }

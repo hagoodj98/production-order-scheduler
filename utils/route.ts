@@ -36,7 +36,6 @@ export const addPendingJobToArrays = (job: TimeJobSlot) => {
                 pendingJobs[editExistingPendingJob].resource = job.resource;
                 pendingJobs[editExistingPendingJob].timeslot = job.timeslot;
             }
-   
   }
 };
 

@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import Form from 'react-bootstrap/Form';
 import type { TimeJobSlot, ErrorMessage, FormErrors } from './types';
 import { useAppContext, useSlotContext } from '../context';
-import * as z from "zod/v4"
+import * as z from "zod/v4";
 import { useRouter } from "next/navigation";
 import slots from './dataslots';
 import Link from 'next/link';
@@ -16,18 +16,18 @@ const ProductionForm = () => {
     const cellID = z.object({
         row: z.string(),
         column: z.string()
-    })
+    });
     const startEndTime = z.object({
         start: z.string().min(1,'Please select start time'),
         end: z.string().min(1,'Please select end time')
-    })
+    });
     const userSelection = z.object({
         id: cellID,
         timeslot: startEndTime,
         resource: z.string().min(1, 'Please choose a job'),
     });
     const router = useRouter();
-    const { data, setData } = useAppContext();
+    const { setData } = useAppContext();
     const [timeJob, setTimeJob] = useState<TimeJobSlot>(
         {
             id: {
@@ -41,7 +41,6 @@ const ProductionForm = () => {
             resource: ""
         });
     const { dataSlot } = useSlotContext();
-   // const [isDisabled, setIsDisabled] = useState(false);
     const [errors, setErrors]= useState<FormErrors>([]);
     const [errorStatus, setErrorStatus]= useState('');
 
@@ -85,27 +84,28 @@ const ProductionForm = () => {
             console.log(error);
             if (error instanceof z.ZodError) {
                 console.log(error.issues);
-                const fieldErrors : ErrorMessage[] = error.issues.map(issue => ({
-                    field: issue.path.join(""),
-                    message: issue.message
-                })
-            );
+                const fieldErrors : ErrorMessage[] = error.issues.map(issue => (
+                    {
+                        field: issue.path.join(""),
+                        message: issue.message
+                    }
+                ));
                 setErrors(fieldErrors);
                 return;
             } 
             if (error instanceof CustomError) {
                 const customError: CustomError = error;
-                setErrors({
-                    message:customError.message,
-                    status: customError.statusCode
-                }); // you're already using FormErrors union type
+                setErrors(
+                    {
+                        message:customError.message,
+                        status: customError.statusCode
+                    }); // you're already using FormErrors union type
                 return;
             }
             
             else {
                 setErrorStatus('error');
               }
-             
         }
     }
     //This function happens if there was a change made to the form. If user decides to make any changes, keep the previous value and change the field being changed(Lines 60-65).
@@ -195,13 +195,12 @@ const ProductionForm = () => {
         }
     },[dataSlot]);
 
-
   return (
     <div className='tw-flex tw-flex-col tw-justify-evenly'>
         {errorStatus === 'error' &&
-        <div className='tw-text-red-500'>
-            <p>There was an internal error. Try again later</p>
-        </div>
+            <div className='tw-text-red-500'>
+                <p>There was an internal error. Try again later</p>
+            </div>
         }
         {!Array.isArray(errors) && errors?.message && (
             <div className="tw-text-red-500 tw-text-base tw-text-center tw-mt-10">
@@ -218,7 +217,7 @@ const ProductionForm = () => {
                     {slots.map((slotObj, index) => {
                         return(
                             <option key={index} value={slotObj.slot.start}>{slotObj.slot.start}</option>
-                        )
+                        );
                     })}
                 </Form.Select>
                 {Array.isArray(errors) && errors.find(err => err.field === 'timeslotstart') && (
@@ -231,7 +230,7 @@ const ProductionForm = () => {
                     {slots.map((slotObj, index) => {
                         return(
                             <option key={index} value={slotObj.slot.end}>{slotObj.slot.end}</option>
-                        )
+                        );
                     })}
                 </Form.Select>
                 {Array.isArray(errors) && errors.find(err => err.field ==='timeslotend') && (
@@ -262,27 +261,3 @@ const ProductionForm = () => {
 }
 
 export default ProductionForm;
-
-
-/*
-<Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
-                    <option value="">Choose time slot</option>
-                    {slots.map((slot, index) => {
-                        return(
-                            <option key={index} value={slot.slot}>{slot.slot}</option>
-                        )
-                    })}
-                </Form.Select>
-
-{slots.map((slot, index) => {
-                        return(
-                            <option key={index} value={slot.slot}>{slot.slot}</option>
-                        )
-                    })}
-
- {Array.isArray(errors) && errors.find(err => err.field ==='timeslot') && (
-                    <div className='tw-text-red-500 tw-text-sm'>
-                        {errors.find(err => err.field === 'timeslot')?.message}
-                    </div>
-                )}
-*/

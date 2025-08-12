@@ -9,11 +9,11 @@ import slots from "@/app/components/dataslots";
 const cellID = z.object({
     row: z.string(),
     column: z.string()
-  });
-  const startEndTime = z.object({
+});
+const startEndTime = z.object({
     start: z.string().min(1,'Please select start time'),
     end: z.string().min(1,'Please select end time')
-})
+});
 const userSelection = z.object({
     id: cellID,
     timeslot: startEndTime,
@@ -22,13 +22,11 @@ const userSelection = z.object({
 
 //This handler takes care of the pending state. This route is only called when the data is valid.
 export async function POST(req: NextRequest) {
-    
     try {
         if (!req) {
             throw new CustomError('Missing input information', 404);
         }
         const raw = await req.json();
-        
         //The object.key is a safe guard to make sure there is at least one 
         if (Object.keys(raw['timeSlot']).length > 0) {
             const validData = await userSelection.parseAsync(raw['timeSlot']);
@@ -67,6 +65,6 @@ export async function POST(req: NextRequest) {
             }));
             return new NextResponse(JSON.stringify({fieldErrors: fieldErrors}), {status: 400});
         }
-        return NextResponse.json({error: 'There was an internal error. Try again later'} , {status: 500})
+        return NextResponse.json({error: 'There was an internal error. Try again later'} , {status: 500});
     }
 }

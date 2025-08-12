@@ -54,13 +54,3 @@ export async function GET() {
    // console.log('what mark-pending sees after the schedule change');
     return NextResponse.json({availability, pendingCellsArray});
 }
-
-export async function POST(req: Request) {
-    const { cellSlotArray } = await req.json();
-
-    console.log(cellSlotArray);
-    console.log('have access to cellSlotArray on the backend');
-      // Process it however you'd like, return response
-    return NextResponse.json({ success: true });
-    
-  }

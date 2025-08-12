@@ -10,7 +10,7 @@ import useSWR from "swr";
 import { newResources } from "./Resources";
 import slots from "./dataslots";
 import DropDownFiltering from "./DropDownFiltering";
-import * as z from "zod/v4"
+import * as z from "zod/v4";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 
@@ -69,10 +69,8 @@ const Table = () => {
         try {
             if (cell.getValue() === "Pending" || cell.getValue() === "Available") {
                 setCellSelection(true);
-                //console.log('NAVIGATING TO /assign-resource'); // Add this
-               // console.log('cell.getValue()', cell.getValue()); // to confirm it's "Pending"
                 router.push('/assign-resource');
-            } else if (cell.getValue() === 'CNC Machine 1' || cell.getValue() === "Assembly Line A" || cell.getValue() === "Assembly Line B" || cell.getValue() === "Assembly Line C"){
+            } else if (cell.getValue() === 'CNC Machine 1' || cell.getValue() === "Assembly Line A" || cell.getValue() === "Assembly Line B" || cell.getValue() === "Assembly Line C") {
                 return;
             } else {
                 alert('Cannot edit a scheduled time');
@@ -123,6 +121,9 @@ const Table = () => {
         <div>
             <table className=" tw-h-80 tw-my-auto tw-w-full tw-mx-auto ">
                 <thead> 
+                    <tr className="tw-bg-[#00C49F] ">
+                        <th colSpan={4} className=" tw-p-2 tw-text-center tw-text-white tw-text-sm">(Military-Time)</th>
+                    </tr> 
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (

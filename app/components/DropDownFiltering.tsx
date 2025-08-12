@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import { Table } from './types';
-import { Column } from '@tanstack/react-table'
+import { Column } from '@tanstack/react-table';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
 
 type DropDownFilteringProps = {
     column: Column<Table, unknown>;
@@ -20,20 +19,13 @@ const DropDownFiltering = ({ column }: DropDownFilteringProps) => {
         value={filterValue as string || ''}
         sx={{height:15}}
         onChange={(e) => {
-          console.log(e);
-          
           const value = e.target.value;
           column.setFilterValue(value === '' ? undefined : value);
-      }}
-    
-      >
-        <MenuItem value="">
-          <em>All</em>
-        </MenuItem>
+      }}>
+        <MenuItem value=""><em>All</em></MenuItem>
         <MenuItem value={'Scheduled'}>Scheduled</MenuItem>
       </Select>
-  </FormControl>
-     
+    </FormControl>
   )
 }
 

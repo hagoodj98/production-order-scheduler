@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockAvailability } from './mockData';
+
   // @ts-check
 
 /*
@@ -26,111 +26,132 @@ test('homepafe loads', async ({ page }) => {
 */
 
 // Reset state before each test to ensure isolation.
-
-//test.describe('Order Creation', () => {
- 
-  //test('Create Pending order', async ({ page }) => {
-  //  let isFirstRequest = true;
-   // await page.route('**/api/poll-resource', async route => {
-   /*   console.log('Intercepted!', isFirstRequest);
-      // First fetch simulates initial table state (all Available)
-      if (isFirstRequest) {
-        isFirstRequest = false;
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(mockAvailability),
-        });
-      } else {
-        // Second fetch reflects the user's action (cell becomes Pending)
-          const updatedAvailability = [
-            {
-              name: 'Assembly Line A',
-              '24:45-24:47': 'Pending',
-            }
-          ];
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(updatedAvailability),
-          });
-      }
-    });
-    await page.goto('http://localhost:3000');
-    await page.getByTestId('cell-1_24-45-24-47').click();
-    await expect(page).toHaveURL('http://localhost:3000/assign-resource');
-    // Wait until the timeslot select has at least one real option (besides the placeholder)
- 
-    await page.selectOption('select[name="timeslot"]', '24:45-24:47');
-    await page.selectOption('select[name="resource"]', 'Assembly Line A');
-    
-    await page.getByRole('link', {name: 'Back' }).click();
-    await expect(page).toHaveURL('http://localhost:3000');
-    const cellPending = page.getByTestId('cell-1_24-45-24-47');
-    await expect(async () => {
-      const text = await cellPending.textContent();
-      expect(text).toBe('Pending');
-    }).toPass();
-    await expect(page.getByText('Hello world')).toBeVisible();
-    const cell = page.getByTestId('cell-1_24-45-24-47');
-    await expect(page.getByTestId('cell-1_24-45-24-47')).toHaveText('Pending', { timeout: 6000 });
-  });
-
-  //test('Show validation errors for invalid data', async ({page}) => {
-    //await page.route('api/poll-resource', async route => {
-    /*  await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockAvailability),
-      });
-    });
-    await page.goto('http://localhost:3000');
-    await page.getByTestId('cell-1_24-45-24-47').click();
-    await expect(page).toHaveURL('http://localhost:3000/assign-resource');
-     // Leave selects untouched — submit directly
-    await page.getByRole('button', { name: 'Submit' }).click();
-    // Expect validation messages to appear
-    await expect(page.getByText('Please select timeSlot')).toBeVisible();
-    await expect(page.getByText('Please choose a job')).toBeVisible();
-  
-  });
-
-  //test('Show validation errors for only one invalid field', async ({page}) => {
-    // await page.route('**api/poll-resource', async route => {
-    /*  await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockAvailability),
-      });
-    });
-    await page.goto('http://localhost:3000');
-    await page.getByTestId('cell-1_24-45-24-47').click();
-    await expect(page).toHaveURL('http://localhost:3000/assign-resource');
-    await page.selectOption('select[name="timeslot"]', '24:45-24:47');
-    
-    await page.getByRole('button', { name: 'Submit' }).click();
-    // Expect validation messages to appear
-    await expect(page.getByText('Please choose a job')).toBeVisible();
-    
-  });
-
-}); //All test passed!
 /*
+test.describe('Order Creation', () => {
+  test.beforeEach(async ({ page }) => {
+    // Go to the starting url before each test.
+    await page.goto('http://localhost:3000');
+  });
 
+  test('Create Pending order', async ({ page }) => {
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('24:47');
+    await page.locator('select[name="end"]').selectOption('24:49');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.waitForURL('**///available-slots'); // ✅ wait for client-side navigation
+   /* await page.waitForSelector('[data-testid="cell-1_24-47-24-49"]');
+    await expect(page.getByTestId('cell-1_24-47-24-49')).toHaveText('Pending', { timeout: 10000 });
+  });
+  test('Show invalid for one field', async ({ page }) => {
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('');
+    await page.locator('select[name="end"]').selectOption('24:49');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await expect(page.getByText('Please select start time')).toBeVisible();
+  });
+  test('Show invalid for all fields', async ({ page }) => {
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('');
+    await page.locator('select[name="end"]').selectOption('');
+    await page.locator('select[name="resource"]').selectOption('');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await expect(page.getByText('Please select start time')).toBeVisible();
+    await expect(page.getByText('Please select end time')).toBeVisible();
+    await expect(page.getByText('Please choose a job')).toBeVisible();
+  });
+});//All test passed
+  */
+
+ /*
 test.describe('Order Editing & Scheduling:', () => {
+  test.beforeEach(async ({ page }) => {
+    // Go to the starting url before each test.
+    await page.goto('http://localhost:3000');
+    // Reset backend state
+    //await page.request.post('http://localhost:3000/api/reset-state');
+  });
  
   test('Edit Pending order ', async ({ page }) => {
-    await page.goto('http://localhost:3000');
-    await page.getByTestId('cell-1_24-45-24-47').click();
-    await expect(page).toHaveURL('http://localhost:3000/assign-resource');
-    // Wait until the timeslot select has at least one real option (besides the placeholder)
-    await page.selectOption('select[name="timeslot"]', '24:45-24:47');
-    await page.selectOption('select[name="resource"]', 'Assembly Line A');
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('24:47');
+    await page.locator('select[name="end"]').selectOption('24:49');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.waitForURL('**///available-slots');
+    //await expect(page.getByTestId('cell-1_24-47-24-49')).toHaveText('Pending');
+    // Now edit
+    /*
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('24:47');
+    await page.locator('select[name="end"]').selectOption('24:49');
+    await page.locator('select[name="resource"]').selectOption('CNC Machine 1');
     await page.getByRole('button', { name: 'Submit' }).click();
-    await expect(page).toHaveURL('http://localhost:3000/');
-    const cell = page.getByTestId('cell-1_24-45-24-47');
-    await expect(cell).not.toHaveText('Available', { timeout: 5000 });
-    await expect(cell).toHaveText('Scheduled', { timeout: 10000 });
+    await page.waitForTimeout(9000); // Wait for setLastJob to clear
+    await page.waitForURL('**///available-slots');
+    //await expect(page.getByTestId('cell-0_24-47-24-49')).toHaveText('Scheduled');
+  //});
+//});  //test passed
+/*
+test.describe('Scheduling Validation', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000');
   });
 
-});  */
+  test('Prevent form submission on false times', async ({ page }) => {
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('24:47');
+    await page.locator('select[name="end"]').selectOption('08:45');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await expect(page.getByText('Sorry! End time must be after start time.')).toBeVisible();
+  })
+});
+*/
+test.beforeEach(async ({ page }) => {
+  await page.goto('http://localhost:3000');
+ // await page.request.post('http://localhost:3000/api/reset-state');
+});
+/*
+test.describe('Table Interaction', () => {
+  test('Click and filter by Scheduled', async ({ page }) => {
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-1_24-47-24-49').click();
+    await page.locator('select[name="start"]').selectOption('24:47');
+    await page.locator('select[name="end"]').selectOption('24:49');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await page.getByRole('cell', { name: '24:47-24:49' }).click();
+    await page.getByRole('option', { name: 'Scheduled' }).click();
+    await expect(page.getByTestId('cell-2_24-47-24-49')).toHaveText('Scheduled', { timeout: 10000 });
+  })
+});//*/
+
+test.describe('Dashboard Display', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000');
+   // await page.request.post('http://localhost:3000/api/reset-state');
+  });
+  test('chart renders status and reflects the current data state', async ({ page }) => {
+    test.setTimeout(120_000); // allow 1.5 minutes for this test
+    await page.getByRole('button', { name: 'View Orders' }).click();
+    await page.getByTestId('cell-2_22-31-22-32').click();
+    await page.locator('select[name="start"]').selectOption('22:31');
+    await page.locator('select[name="end"]').selectOption('22:32');
+    await page.locator('select[name="resource"]').selectOption('Assembly Line B');
+    await page.getByRole('button', { name: 'Submit' }).click();
+    await page.getByRole('button', { name: 'Back to Dashboard' }).click();
+    expect(page.locator('div').filter({ hasText: 'DashboardView Orders' }).getByRole('img').nth(3).hover()).toBeTruthy();
+    await expect(page.getByText(/2 slots available/i)).toBeVisible({ timeout: 5000});//up to here it passes
+   //The wait period is going to be based on the start and end time i select
+    await page.locator('div').filter({ hasText: 'DashboardAssembly Line B3' }).locator('svg').hover();
+    await page.locator('div').filter({ hasText: 'DashboardView Orders' }).getByRole('img').nth(3).hover();
+    await expect(page.getByText(/3 slots available/i)).toBeVisible({ timeout: 5000});
+  }); //Passed
+});

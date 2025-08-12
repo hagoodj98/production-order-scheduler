@@ -43,7 +43,7 @@ const Table = () => {
             cell: info => info.getValue(),
         }),
         ...slots.map((slot) => {
-            return columnHelper.accessor(slot.slot, {
+            return columnHelper.accessor(`${slot.slot.start}-${slot.slot.end}`, {
                 cell: info => info.getValue(),
                 filterFn: (row,columnId, filterValue) => {
                     return row.getValue(columnId) === filterValue;
@@ -92,7 +92,10 @@ const Table = () => {
                 const cellInfo = {
                     id: cellID,
                     name: pendingData.resource,
-                    time: pendingData.timeslot
+                    timeslot: { 
+                            start: pendingData.timeslot.start,
+                            end: pendingData.timeslot.end
+                        }
                 }
                 //This would be used if I wanted to prefill the form if user wanted to edit a pending job. But what we are interested in is the row and column for marking cells for Pending. We want to the user to provide valid field data for the rest.
                 setDataSlot(cellInfo);
@@ -100,7 +103,10 @@ const Table = () => {
                 const cellInfo = {
                     id: cellID,
                     name: "",
-                    time: ""
+                    timeslot: {
+                            start: '',
+                            end: ''
+                    }
                 }
                 setDataSlot(cellInfo);
             }

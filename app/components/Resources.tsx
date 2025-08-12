@@ -2,7 +2,7 @@
 import type { Resource, SlotKey, SlotStatus } from "./types"
 import slots from "./dataslots";
 
-const slotKeys = slots.map((slot) => slot.slot) as SlotKey[];
+const slotKeys = slots.map((slot) => `${slot.slot.start}-${slot.slot.end}`) as SlotKey[];
 //Created a function that would dynamically add resources to the table. 
   function createResource(id: number, name: string, row: string, status: SlotStatus): Resource {
     //This dynamically builds an Object by mapping through the Slot array

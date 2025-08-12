@@ -17,25 +17,43 @@ const ProductionForm = () => {
         row: z.string(),
         column: z.string()
     })
+    const startEndTime = z.object({
+        start: z.string().min(1,'Please select start time'),
+        end: z.string().min(1,'Please select end time')
+    })
     const userSelection = z.object({
         id: cellID,
-        timeslot: z.string().min(1,'Please select timeSlot'),
+        timeslot: startEndTime,
         resource: z.string().min(1, 'Please choose a job'),
     });
     const router = useRouter();
     const { data, setData } = useAppContext();
-    const [timeJob, setTimeJob] = useState<TimeJobSlot>({id: {row: '', column: ''}, timeslot: "",  resource: ""});
-    const {dataSlot, setDataSlot, cellSlotArray, setCellSlotArray} = useSlotContext();
+    const [timeJob, setTimeJob] = useState<TimeJobSlot>(
+        {
+            id: {
+                row: '', 
+                column: ''
+            }, 
+            timeslot: {
+                start: '',
+                end: ''
+            },
+            resource: ""
+        });
+    const { dataSlot } = useSlotContext();
+   // const [isDisabled, setIsDisabled] = useState(false);
     const [errors, setErrors]= useState<FormErrors>([]);
     const [errorStatus, setErrorStatus]= useState('');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         //Prevent the default behavior which is a automatic refresh when the form is submitted
         event.preventDefault();
+     
         //We want to take the shape of TimeSlot that we set in the types.ts file and plug in the values from the form
         try {
             setErrors([]);
-            const timeSlot: TimeJobSlot= userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
+            const timeSlot: TimeJobSlot= userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource });
+      
             //making an api call to process the data from form
             const response = await fetch('/api/schedule-task', {
                 method: 'POST',
@@ -62,14 +80,16 @@ const ProductionForm = () => {
             //If everything passes, grab the json object and push the data to the context with created. That way we can share the data with any component in the application. In this case, the Table component      
             const data = await response.json();
             setData(data.availabity);
-            router.push('/');
+            router.push('/available-slots');
         } catch (error) {
             console.log(error);
             if (error instanceof z.ZodError) {
+                console.log(error.issues);
                 const fieldErrors : ErrorMessage[] = error.issues.map(issue => ({
-                    field: issue.path.join('.'),
+                    field: issue.path.join(""),
                     message: issue.message
-                }));
+                })
+            );
                 setErrors(fieldErrors);
                 return;
             } 
@@ -85,6 +105,7 @@ const ProductionForm = () => {
             else {
                 setErrorStatus('error');
               }
+             
         }
     }
     //This function happens if there was a change made to the form. If user decides to make any changes, keep the previous value and change the field being changed(Lines 60-65).
@@ -94,6 +115,10 @@ const ProductionForm = () => {
         setTimeJob(prevValue => {
             return {
                 ...prevValue,
+                timeslot: {
+                    ...prevValue.timeslot,
+                    [name]: value
+                },
                 [name]: value
             }
         });
@@ -104,7 +129,8 @@ const ProductionForm = () => {
         console.log('watching change');
         console.log(dataSlot.id);
     //If both fields aren't empty, make sure they are valid before hitting the mark-pending endpoint, which handles changes cells to Pending without submitting form
-        if (timeJob.timeslot !== "" && timeJob.resource !== "") {
+        if (timeJob.timeslot.start !== "" && timeJob.timeslot.end && timeJob.resource !== "") {
+        
             const timeSlot: TimeJobSlot = userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
 
             const sendPendingStatus = async () => {
@@ -115,10 +141,20 @@ const ProductionForm = () => {
                         body: JSON.stringify({timeSlot}),
                     });
                     if (!response.ok) {
-                        console.error('Failed to mark pending');
-                    } else {
-                        console.log('Marked slot as Pending on backend');
-                    }
+                        const errorResponse = await response.json();
+                        console.log(errorResponse);
+                        if (errorResponse.fieldErrors) {
+                            setErrors(errorResponse.fieldErrors);
+                        } else if (errorResponse.error) {
+                            setErrors({
+                                message: errorResponse.error,
+                                status: errorResponse.status
+                            });
+                        } else {
+                            setErrorStatus('error');
+                        }
+                        return;
+                    } 
                 } catch (error) {
                     console.error('Network error marking pending:', error);
                     if (error instanceof z.ZodError) {
@@ -127,8 +163,15 @@ const ProductionForm = () => {
                             message: issue.message
                         }));
                         setErrors(fieldErrors);
-                        
                     } 
+                    if (error instanceof CustomError) {
+                        const customError: CustomError = error;
+                        setErrors({
+                            message:customError.message,
+                            status: customError.statusCode
+                        }); // you're already using FormErrors union type
+                        return;
+                    }
                 }
             };
             sendPendingStatus();
@@ -137,13 +180,16 @@ const ProductionForm = () => {
     },[timeJob]);
 //This prefills the fields based on what the user inputed last without submitting
     useEffect(() => {
-        if (dataSlot?.name !== "" && dataSlot?.time !== "") {
+        if (dataSlot?.name !== "" && dataSlot?.timeslot.start !== "" && dataSlot?.timeslot.end !== "") {
             setTimeJob({
                 id: {
                     row: dataSlot.id.row,
                     column: dataSlot.id.column,
                 },
-                timeslot: dataSlot.time,
+                timeslot: {
+                    start: dataSlot.timeslot.start, 
+                    end: dataSlot.timeslot.end
+                }, //dataSlot.time
                 resource: dataSlot.name
             })
         }
@@ -167,20 +213,33 @@ const ProductionForm = () => {
                 <h2 className='tw-text-center tw-text-[#FFBB28]'>Choose a job</h2>
             </div>
             <Form className='tw-mx-auto tw-w-1/2 ' onSubmit={handleSubmit}>
-                <Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
-                    <option value="">Choose time slot</option>
-                    {slots.map((slot, index) => {
+                <Form.Select name='start' onChange={handleChange} value={timeJob.timeslot.start}>
+                    <option value="">Start Time?</option>
+                    {slots.map((slotObj, index) => {
                         return(
-                            <option key={index} value={slot.slot}>{slot.slot}</option>
+                            <option key={index} value={slotObj.slot.start}>{slotObj.slot.start}</option>
                         )
                     })}
                 </Form.Select>
-                {Array.isArray(errors) && errors.find(err => err.field ==='timeslot') && (
+                {Array.isArray(errors) && errors.find(err => err.field === 'timeslotstart') && (
                     <div className='tw-text-red-500 tw-text-sm'>
-                        {errors.find(err => err.field === 'timeslot')?.message}
+                        {errors.find(err => err.field === 'timeslotstart')?.message}
                     </div>
                 )}
-                <Form.Select name='resource' className='tw-mt-3' onChange={handleChange} value={timeJob.resource} >
+                <Form.Select name='end' onChange={handleChange} value={timeJob.timeslot.end}>
+                    <option value="">End Time?</option>
+                    {slots.map((slotObj, index) => {
+                        return(
+                            <option key={index} value={slotObj.slot.end}>{slotObj.slot.end}</option>
+                        )
+                    })}
+                </Form.Select>
+                {Array.isArray(errors) && errors.find(err => err.field ==='timeslotend') && (
+                    <div className='tw-text-red-500 tw-text-sm'>
+                        {errors.find(err => err.field === 'timeslotend')?.message}
+                    </div>
+                )}
+                <Form.Select name='resource' onChange={handleChange} value={timeJob.resource} >
                     <option value="" className='tw-text-stone-400'>Choose resource</option>
                     <option value="CNC Machine 1">CNC Machine 1</option>
                     <option value="Assembly Line A">Assembly Line A</option>
@@ -192,7 +251,7 @@ const ProductionForm = () => {
                         {errors.find(err => err.field === 'resource')?.message}
                     </div>
                 )}
-                <Button type="submit"  sx={{margin: 'auto', width: '100%', marginTop: 3 }}  variant="contained" size='small' >Submit</Button>
+                <Button type="submit"  sx={{margin: 'auto', width: '100%', marginTop: 3 }} variant="contained" size='small' >Submit</Button>
             </Form>
         </div>
         <div className='tw-mx-auto tw-mt-28'>
@@ -203,3 +262,27 @@ const ProductionForm = () => {
 }
 
 export default ProductionForm;
+
+
+/*
+<Form.Select name='timeslot' onChange={handleChange} value={timeJob.timeslot}>
+                    <option value="">Choose time slot</option>
+                    {slots.map((slot, index) => {
+                        return(
+                            <option key={index} value={slot.slot}>{slot.slot}</option>
+                        )
+                    })}
+                </Form.Select>
+
+{slots.map((slot, index) => {
+                        return(
+                            <option key={index} value={slot.slot}>{slot.slot}</option>
+                        )
+                    })}
+
+ {Array.isArray(errors) && errors.find(err => err.field ==='timeslot') && (
+                    <div className='tw-text-red-500 tw-text-sm'>
+                        {errors.find(err => err.field === 'timeslot')?.message}
+                    </div>
+                )}
+*/

@@ -35,7 +35,10 @@ export function SlotWrapper({children} : {
             column: ''
         },
         name: "",
-        time: ''
+        timeslot: { 
+                start: '', 
+                end: ''
+        }
     });
     const [cellSlotArray, setCellSlotArray] = useState<TimeJobSlot[]>([]);
 

@@ -3,7 +3,7 @@ import React from "react";
 export type SlotStatus = 'Pending' | 'Available' | 'Scheduled' | 'Busy';
 
 export type SlotKey =
-  | (typeof import("./dataslots").default[number]["slot"]);
+  | `${typeof import("./dataslots").default[number]["slot"]["start"]}-${typeof import("./dataslots").default[number]["slot"]["end"]}`;
 
 export type CellID = {
   row: string,
@@ -12,8 +12,13 @@ export type CellID = {
 
 export type TimeSlots = {
   id: number,
-  slot: string
+  slot: StartEndTime
 }
+export type StartEndTime ={
+  start: string,
+  end: string
+}
+
 interface ColumnFilter {
   id: string
   value: unknown
@@ -22,7 +27,7 @@ export type ColumnFiltersState = ColumnFilter[];
 
 export type TimeJobSlot = {
   id: CellID,
-  timeslot: string,
+  timeslot: StartEndTime,
   resource: string
 };
 
@@ -56,7 +61,7 @@ export type Slot = {
     row: string,
     column: string
   },
-  time: string,
+  timeslot: StartEndTime,
   name: string
 }
 

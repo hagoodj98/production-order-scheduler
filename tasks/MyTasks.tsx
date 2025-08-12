@@ -1,11 +1,11 @@
 //This file serves as the brain that checks the time and make the status changes
-import { setLatestJob } from '@/utils/route';
+import { setLatestJob } from '../utils/route';
 import type {Resource, SlotKey, CellID } from '../app/components/types';
-import { newResources } from '@/app/components/Resources';
-import { CustomError } from '@/utils/CustomErrors';
+import { newResources } from '../app/components/Resources';
+import { CustomError } from '../utils/CustomErrors';
 
 //created array to store jobs the user selected with a Scheduled status.
-const scheduleJobs: Resource[] = [];
+ export const scheduleJobs: Resource[] = [];
 //This function is called for every job with a Scheduled Status inside the pendingJobs array I created. I want the job object and the slotKey from the loopThroughPendingJobs function. SlotKey is a string that I can parse and use to compare timing. If the current time is before or after the slotKeys, then change the statuses according. 
 function changeStatuses (job: Resource, slotKey: string) {
 
@@ -23,10 +23,10 @@ function changeStatuses (job: Resource, slotKey: string) {
     console.log('startTime', startTime.toLocaleTimeString());
     console.log('endTime', endTime.toLocaleTimeString());
     */
-    if (now > endTime) { //This takes care of if the user tries to schedule a slot when that slot time has already passed.
+    /*if (now > endTime) { //This takes care of if the user tries to schedule a slot when that slot time has already passed.
       console.log('this is pasted');
       throw new CustomError('This time has passed. You cannot schedule. Come back tomorrow', 400);
-    } else {
+    } else {*/
         if (now >= startTime && now < endTime) {
           job[slotKey as SlotKey] = 'Busy';
         } else if (now < startTime) {
@@ -36,8 +36,16 @@ function changeStatuses (job: Resource, slotKey: string) {
             job[slotKey as SlotKey] = 'Scheduled';
         } else {
             job[slotKey as SlotKey] = 'Available';
+            scheduleJobs.forEach((toDelete, index) => {
+              //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any pending slots, get rid of them.
+              const slotKeys = Object.keys(toDelete).filter(key => key !== 'id' && key !== 'name' && key !== 'row');
+              const allAvailable = slotKeys.every(key => toDelete[key as SlotKey] === 'Available');
+              if (allAvailable) {
+                scheduleJobs.splice(index, 1);
+              }
+            });
           }
-      }
+      //}
   } catch (error) {
       if (error instanceof CustomError) {
         throw error;
@@ -45,7 +53,7 @@ function changeStatuses (job: Resource, slotKey: string) {
       throw new CustomError('There was a problem processing the current time or time slot', 500)
     }
 }
-function parseTime(time: string): Date {
+export const parseTime = (time: string): Date => {
   try {
     //Taking the time from the user and breaking it at the colon and take each item in the array and convert it to a Number. Because the setHours method expects numbers, not strings. Then set the time using the method
     const [hour, minute] = time.split(":").map(Number);
@@ -61,14 +69,14 @@ function parseTime(time: string): Date {
   }
   //This function takes the pendingJobs array I created in this file. Because I want to store my own version of jobs selected for use. I go in and grab each object from the array and extract the object itself along with the slotKey and pass them to the changeStatues function, to change the status for each individual cell.
 
-  function loopThroughPendingJobs (jobArray: Resource[]): void {
+  export const loopThroughPendingJobs = (jobArray: Resource[]): void => {
     try {
       if (!jobArray) {
         throw new CustomError('Cannot find array or array is empty', 404);
       }
       //I verify what jobArray looks like before trying to loop through the whole thing
-      console.log(jobArray);//Debugging
-      console.log('^^^^whats currently in pendingJobs^^^^');
+      //console.log(jobArray);//Debugging
+      //console.log('^^^^whats currently in pendingJobs^^^^');
       for (let i = 0; i < jobArray.length; i++) {
         const alreadyDocumentedjob = jobArray[i];//this is an object but we want to tap into the keys of slots not id or name or row. 
         Object.keys(alreadyDocumentedjob).forEach((slotKey) => {
@@ -76,7 +84,7 @@ function parseTime(time: string): Date {
           if (slotKey === 'id' || slotKey === 'name' || slotKey === 'row') return;
         //I want to have access each individual object inside the array I created and looping through each key
     
-        //Before sending the slotKey, we want to make sure the value does not equal Available, cause if I select a time, the other slots would change to Pending even if I did not select them. In simple terms, when slotKey equals Availbable, it tells me that the user has not selected that time yet.
+        //Before passing slotKey to changeStatuses, we want to make sure the value does not equal Available or Pending. Because Pending is handled by mark-pending endpoint which does not constitute a user submission and Available simply means the user has not selected this time. So there is no reason to check.
           if (alreadyDocumentedjob[slotKey as SlotKey] === 'Available' || alreadyDocumentedjob[slotKey as SlotKey] === 'Pending' ) {
             return;
           } 
@@ -84,7 +92,6 @@ function parseTime(time: string): Date {
           changeStatuses(alreadyDocumentedjob, slotKey); 
         });
       }
-      
     } catch (error) {
         if (error instanceof CustomError) {
           throw error;
@@ -93,45 +100,13 @@ function parseTime(time: string): Date {
     }
   }
 
-function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : Resource {
+function updateStatusOnSelection(job: Resource, slotKey: string) : Resource {
   try {
-    if (!(job || slotKey || id)) {
+    if (!(job || slotKey)) {
       throw new CustomError('Some or all of the necessary information is missing', 404);
     }
-    //Debugging
-    console.log(scheduleJobs);
-    console.log('currently in array in changeStatus function');   
-    
-    //This block works. If user wants to go back into a previously selected cell and change the job and slot, then it will be removed from the array along with a status change back to Available. If id.row,the cell in which the user selected is not equal to the job.row, every job has a row property, then we knwo the user went into a cell but decided to change jobs and possibly a time slot. Which has to mean, the previous selected was stored in the array somewhere.
-    if (id.row !== job.row) {
-      //So we want to find the object
-      const foundMatchingDocumentedJob = scheduleJobs.findIndex((match) => match.row === id.row);
-      console.log(foundMatchingDocumentedJob);//confirming we get the right job
-      //If it does exist then we want to find where the column in which the cell was selected along with the key that we looped through to see if they match and if the value of the property is Pending. If it is, then we want to change it back to Available 
-      if (foundMatchingDocumentedJob !== -1) {
-
-        Object.keys(scheduleJobs[foundMatchingDocumentedJob]).forEach((pending) => {
-          if (pending === 'id' || pending === 'name' || pending === 'row') return;
-
-          if (id.column === pending && !(scheduleJobs[foundMatchingDocumentedJob][pending as SlotKey] === 'Available')) {
-            scheduleJobs[foundMatchingDocumentedJob][id.column as SlotKey] = 'Available';
-            console.log(scheduleJobs[foundMatchingDocumentedJob][pending as SlotKey],'the new status');
-            console.log('changed to Available^^^^^');
-            changeStatuses(job, slotKey);//without this line, the status that changed from Pending back to Availbale will eventually happen, but after a couple rounds of Cron. But to change it in the heat of the moment, I called a function to do just that
-            }
-        });
-        //If a user go into a previously selected cell and changes the job and/or time slot, then we should make this the most recent input or request from the user for Cron to use when making a call to schedule-task.
-        setLatestJob({id: {row: `${job.row}`, column: `${slotKey}`}, timeSlot: `${slotKey}`, resource: `${job.name}` });
-
-      } else {
-        //If the job, the user selected is not found in the array then we simply go in and change the status and time slot like requested even if the job and id rows are different at first
-        changeStatuses(job, slotKey);
-      }
-    } else {
-      //If the job and id rows match, then the user went into the same row but selected a different cell. So fill the request like normal
-        changeStatuses(job, slotKey);
-      }
       //We want to return job with the appropriate status before pushing to array
+      changeStatuses(job, slotKey);
     return job;  
   } catch (error) {
       if (error instanceof CustomError) {
@@ -148,7 +123,8 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
       console.log(job);//Debugging
       console.log('^^^^job before pushed to array^^^^^^');
       //Just confirming the object before pushing to array. But first I use updateStatusOnSelection and changeStatuses based on what cell was selected to request a job. Essentially, updateStatusOnSelection updates the object,the status, before pushing it to the pendingJobs array.
-      const jobStatusChanged = updateStatusOnSelection(job, timeSlot, id);
+      
+      const jobStatusChanged = updateStatusOnSelection(job, timeSlot);
       //console.log('<<<belongs to addToArray function>>');
   
       console.log(jobStatusChanged);//Debugging. Making sure I get back what I expect from updateStatusOnSelection
@@ -188,7 +164,7 @@ function updateStatusOnSelection(job: Resource, slotKey: string, id: CellID) : R
  * 
 */
 // I want access to the timeSlot, resource(name) and what cell(id:{row:"", column:""}) the selection took place
-export const myTasks= (timeSlot: string, resource: string, id: CellID ): void => {
+export const myTasks = (timeSlot: string, resource: string, id: CellID ): void => {
   try {
     if (!(timeSlot || resource || id)) {
       throw new CustomError('Missing field information', 404);
@@ -203,11 +179,13 @@ export const myTasks= (timeSlot: string, resource: string, id: CellID ): void =>
     const checkJobWithScheduled = scheduleJobs.find((existJob) => existJob.name === job.name && existJob[timeSlot as SlotKey] === 'Scheduled');
     console.log(checkJobWithScheduled);
     console.log(scheduleJobs);
+ 
     if (checkJobWithScheduled === undefined) {
-         //sending the object and the timeslot along with cell info for processing. 
+      //sending the object and the timeslot along with cell info for processing. 
       addToArray(job, timeSlot, id);
       //Once the job has been processed, we want Cron to stop sending that job
       setLatestJob({id: {row: '', column: ''}, timeSlot: '', resource: '' });
+      console.log('in myTasks function');
     } else {
         throw new CustomError('Slot is already filled. Please choose another!', 400);
     }

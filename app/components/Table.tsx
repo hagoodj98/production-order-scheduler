@@ -25,10 +25,12 @@ const Table = () => {
    
     const {dataSlot, setDataSlot, cellSlotArray, setCellSlotArray} = useSlotContext();
     const router = useRouter();
+
     const fetcher =  async (url: string) => {
         const res = await fetch(url);
         return await res.json();
     }
+///api/poll-resource is the key, which is passed to the fetcher function which makes the api request and returns whatever the endpoint sends back. In this case fetchedData is what's sent back from the the endpoint. I want to poll the endpoint every 5 sec
     const { data: fetchedData } = useSWR<PollResourceResponse>('/api/poll-resource', fetcher, {
         refreshInterval: 5000, // poll every 5 seconds
     });
@@ -48,14 +50,13 @@ const Table = () => {
                 filterFn: (row,columnId, filterValue) => {
                     return row.getValue(columnId) === filterValue;
                 },
-               
             });
         }),
     ];
 //According to tanstack, this is how we define our table
     const table = useReactTable({
         columns,
-        data: fetchedData?.availability ?? newResources,
+        data: fetchedData?.availability ?? newResources,//the table should start with default data. if there is a change to that data via fetchedData then render it instead.
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         state: {
@@ -81,7 +82,7 @@ const Table = () => {
                 row: cell.row.id,
                 column: cell.column.id
             }
-            setCellSlotArray(fetchedData?.pendingCellsArray ?? [])
+            setCellSlotArray(fetchedData?.pendingCellsArray ?? []);
 
             //If there is a pending cell while its' properties are filled, then find that job in the array and grab its cell id, resource and time. resource and time are what i use to prefill the fields in the select options form. If a cell is not found, then that means there was no selection for that cell. So we redeclare cellInfo and set its properties to empty cause the user has not set them yet.
             const pendingData = cellSlotArray.find( cellSlot => cellSlot.id.row === cellID.row && cellSlot.id.column === cellID.column);
@@ -139,7 +140,6 @@ const Table = () => {
                                         {header.column.id !== 'name' && header.column.getCanFilter() && (
                                             <DropDownFiltering column={header.column} />
                                         )}
-                                        
                                     </div>
                                     )}
                             </th>

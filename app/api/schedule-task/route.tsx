@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type {TimeJobSlot, ErrorMessage, Resource} from '../../components/types';
-import { myTasks, loopThroughPendingJobs,parseTime  } from '@/tasks/MyTasks';
+import { myTasks, loopThroughScheduledJobs, parseTime  } from '@/tasks/MyTasks';
 import { CustomError } from '@/utils/CustomErrors';
 import { newResources } from '@/app/components/Resources';
-import { setLatestJob, getLatestJob } from '@/utils/route';
+import { getScheduledJobs } from '@/utils/route';
 import * as z from 'zod/v4';
 import slots from '@/app/components/dataslots';
 
@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
             if (body?.id && body?.timeslot && body?.resource) {
                 // e.g:// { row: '1', column: '15:24-15:27' }
                 //console.log(body.id);
-                const { row, column } = body.id;
+                
                 const { start, end } = body.timeslot;
+                //the endTime and startTime are things we want to check before we proceed processing. For example, if user selects a time that is in the past or if user made end time before start time which is logically wrong
                 const endTime = parseTime(end);
                 const startTime = parseTime(start);
                 const date = new Date();
@@ -49,12 +50,12 @@ export async function POST(req: NextRequest) {
                 if (endTime <= startTime) {
                     throw new CustomError('Sorry! End time must be after start time.', 400);
                 }
+                //This checks if user tries to select a start and end time that does  exists. If it does then proceed processing.
                 const slotFound = slots.find(slot => slot.slot.start === start && slot.slot.end === end);
               
                 if (!(slotFound === undefined)) {
                     const timeSlot = `${slotFound?.slot.start}-${ slotFound?.slot.end}`;
-                    //Save the input so cron can later retrieve it. If data is not saved then timeslot and resource will be undefined from Cron's perspective, because it is sending an empty payload
-                    setLatestJob({id: {row, column}, timeSlot: timeSlot, resource: body.resource });
+                   // setLatestJob({id: {row, column}, timeSlot: timeSlot, resource: body.resource });
                     try {
                         // ✅ Actually run the scheduling logic here
                         myTasks(timeSlot, body.resource, body.id);
@@ -71,12 +72,12 @@ export async function POST(req: NextRequest) {
             }
         }
         // Retrieve and use the most up-to-date job input for cron. Because cron makes an API request to this endpoint with an empty body
-        const scheduleJobs: Resource[] = getLatestJob();
+        const scheduleJobs: Resource[] = getScheduledJobs();
         console.log(scheduleJobs.length);
         console.log('cron sees schedule array length');
         if (scheduleJobs.length > 0) {
             try {
-                loopThroughPendingJobs(scheduleJobs);
+                loopThroughScheduledJobs(scheduleJobs);
                 
             } catch (error) {
                 if (error instanceof CustomError) {

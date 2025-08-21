@@ -34,7 +34,6 @@ const Recharts = () => {
       }
       return '';
     };
-      
   const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
       const isVisible = active && payload && payload.length;
 
@@ -42,9 +41,7 @@ const Recharts = () => {
       const dataItem = payload[0];
       const name = dataItem?.name;
       const value = dataItem?.value;
-
       return (
-        
         <div className="tw-bg-white tw-p-4" style={{ visibility: isVisible ? 'visible' : 'hidden' }}>
           {isVisible && (
             <>

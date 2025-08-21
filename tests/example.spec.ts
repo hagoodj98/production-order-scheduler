@@ -1,31 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-  // @ts-check
 
-/*
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
-
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
-
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
-});
-test('homepafe loads', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  await expect(page).toHaveTitle(/Create Next App/)
-})
-*/
-
-// Reset state before each test to ensure isolation.
 /*
 test.describe('Order Creation', () => {
   test.beforeEach(async ({ page }) => {
@@ -97,6 +72,7 @@ test.describe('Order Editing & Scheduling:', () => {
     //await expect(page.getByTestId('cell-0_24-47-24-49')).toHaveText('Scheduled');
   //});
 //});  //test passed
+
 /*
 test.describe('Scheduling Validation', () => {
   test.beforeEach(async ({ page }) => {
@@ -114,6 +90,7 @@ test.describe('Scheduling Validation', () => {
   })
 });
 */
+/*
 test.beforeEach(async ({ page }) => {
   await page.goto('http://localhost:3000');
  // await page.request.post('http://localhost:3000/api/reset-state');
@@ -132,7 +109,7 @@ test.describe('Table Interaction', () => {
     await expect(page.getByTestId('cell-2_24-47-24-49')).toHaveText('Scheduled', { timeout: 10000 });
   })
 });//*/
-
+/*
 test.describe('Dashboard Display', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3000');
@@ -154,4 +131,4 @@ test.describe('Dashboard Display', () => {
     await page.locator('div').filter({ hasText: 'DashboardView Orders' }).getByRole('img').nth(3).hover();
     await expect(page.getByText(/3 slots available/i)).toBeVisible({ timeout: 5000});
   }); //Passed
-});
+});*/

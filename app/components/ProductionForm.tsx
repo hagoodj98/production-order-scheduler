@@ -41,8 +41,8 @@ const ProductionForm = () => {
             resource: ""
         });
     const { dataSlot } = useSlotContext();
-    const [errors, setErrors]= useState<FormErrors>([]);
-    const [errorStatus, setErrorStatus]= useState('');
+    const [ errors, setErrors ]= useState<FormErrors>([]);
+    const [ errorStatus, setErrorStatus ]= useState('');
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         //Prevent the default behavior which is a automatic refresh when the form is submitted
@@ -129,7 +129,7 @@ const ProductionForm = () => {
         console.log('watching change');
         console.log(dataSlot.id);
     //If both fields aren't empty, make sure they are valid before hitting the mark-pending endpoint, which handles changes cells to Pending without submitting form
-        if (timeJob.timeslot.start !== "" && timeJob.timeslot.end && timeJob.resource !== "") {
+        if (timeJob.timeslot.start !== "" && timeJob.timeslot.end !== "" && timeJob.resource !== "") {
         
             const timeSlot: TimeJobSlot = userSelection.parse({id: dataSlot.id, timeslot: timeJob.timeslot, resource: timeJob.resource});
 
@@ -176,7 +176,6 @@ const ProductionForm = () => {
             };
             sendPendingStatus();
         }
-    
     },[timeJob]);
 //This prefills the fields based on what the user inputed last without submitting
     useEffect(() => {

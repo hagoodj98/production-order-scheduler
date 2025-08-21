@@ -1,7 +1,7 @@
 import { newResources } from "@/app/components/Resources";
 import { SlotKey, TimeJobSlot } from "@/app/components/types";
 import { scheduleJobs } from "@/tasks/MyTasks";
-
+/*
 let latestJob = {
     id: {
         row: '', 
@@ -15,8 +15,8 @@ export const setLatestJob = (job: typeof latestJob) => {
     console.log(job, 'this is in setLastJob');
     latestJob = job
 };
-
-export const getLatestJob = () =>  scheduleJobs;
+*/
+export const getScheduledJobs = () =>  scheduleJobs;
 
 let pendingJobs: TimeJobSlot[] = [];
 
@@ -50,9 +50,10 @@ const resetNewResources = () => {
     });
   });
 };
-
+/*
 export const resetJobState = () => {
-  latestJob = { id: { row: '', column: '' }, timeSlot: '', resource: ''};
+ // latestJob = { id: { row: '', column: '' }, timeSlot: '', resource: ''};
   pendingJobs = [];
   resetNewResources(); // <- Make sure this clears the shared data
 };
+*/

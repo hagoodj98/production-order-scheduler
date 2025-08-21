@@ -1,5 +1,5 @@
 //This file serves as the brain that checks the time and make the status changes
-import { setLatestJob } from '../utils/route';
+//import { setLatestJob } from '../utils/route';
 import type {Resource, SlotKey, CellID } from '../app/components/types';
 import { newResources } from '../app/components/Resources';
 import { CustomError } from '../utils/CustomErrors';
@@ -33,7 +33,7 @@ function changeStatuses (job: Resource, slotKey: string) {
     } else {
         job[slotKey as SlotKey] = 'Available';
         scheduleJobs.forEach((toDelete, index) => {
-          //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any pending slots, get rid of them.
+          //We want to skip these keys. All I want are the timeSlot keys. If there is an object within the array that does not have any scheduled slots, get rid of them.
           const slotKeys = Object.keys(toDelete).filter(key => key !== 'id' && key !== 'name' && key !== 'row');
           const allAvailable = slotKeys.every(key => toDelete[key as SlotKey] === 'Available');
           if (allAvailable) {
@@ -64,7 +64,7 @@ export const parseTime = (time: string): Date => {
   }
   //This function takes the pendingJobs array I created in this file. Because I want to store my own version of jobs selected for use. I go in and grab each object from the array and extract the object itself along with the slotKey and pass them to the changeStatues function, to change the status for each individual cell.
 
-  export const loopThroughPendingJobs = (jobArray: Resource[]): void => {
+  export const loopThroughScheduledJobs = (jobArray: Resource[]): void => {
     try {
       if (!jobArray) {
         throw new CustomError('Cannot find array or array is empty', 404);
@@ -141,9 +141,8 @@ function updateStatusOnSelection(job: Resource, slotKey: string) : Resource {
       if (!isExistingJob) {
         // Clone the job object so we can mutate it independently
         scheduleJobs.push(jobStatusChanged);
-        // If it does exist, then
       } 
-      loopThroughPendingJobs(scheduleJobs);
+      //loopThroughPendingJobs(scheduleJobs);
     } catch (error) {
         if (error instanceof CustomError) {
           throw error;
@@ -178,8 +177,7 @@ export const myTasks = (timeSlot: string, resource: string, id: CellID ): void =
     if (checkJobWithScheduled === undefined) {
       //sending the object and the timeslot along with cell info for processing. 
       addToArray(job, timeSlot, id);
-      //Once the job has been processed, we want Cron to stop sending that job
-      setLatestJob({id: {row: '', column: ''}, timeSlot: '', resource: '' });
+     
       console.log('in myTasks function');
     } else {
         throw new CustomError('Slot is already filled. Please choose another!', 400);

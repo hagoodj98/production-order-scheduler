@@ -26,6 +26,7 @@ export async function GET() {
         const rowMatch = availability.find(job => job.row === id.row);
         console.log(rowMatch);
         console.log('match');
+        //once the job is added to the Pending it stays there unless, i remove it. And the way i do this is by checking if the slot is Scheduled or Busy then remove from array
         if (rowMatch && isSlotKey(id.column)) {
             if (rowMatch[id.column] === 'Scheduled' || rowMatch[id.column] === 'Busy') {
                 pendingCellsArray.splice(index, 1);
@@ -43,7 +44,6 @@ export async function GET() {
                         if (foundScheduledCell[timeSlot] === 'Scheduled') {
                             rowMatch[id.column] = 'Available';
                             pendingCellsArray.splice(index, 1);
-                        
                         }
                     }
                 }

@@ -5,8 +5,8 @@ const slots: TimeSlots[] = [
     {
         id: 1,
         slot: {
-                start: '08:42',
-                end: '08:45'
+                start: '12:01',
+                end: '12:02'
         }
     },
     {
@@ -24,6 +24,6 @@ const slots: TimeSlots[] = [
         }   
     },
     
-] as const;
+] as const; //This was to prevent the types.ts file from reading the type. I want the types file to read the actual value each array item is set to
 
 export default slots;

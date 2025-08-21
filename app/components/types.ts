@@ -42,9 +42,9 @@ export type AvailableSlotPair = {
 }
 
 export type Resource = {
-  id: number,
-  name: string,
-  row: string //This is so that I can have access to the row in which aligns with the job the user selected
+  id: number, //Like any array give each item a number
+  name: string,//Name of job
+  row: string //This is so that I can have access to the row on the backend in which aligns with the job the user selected.
 } & {
   [key in SlotKey]: SlotStatus
 }

@@ -82,10 +82,20 @@ const Table = () => {
                 row: cell.row.id,
                 column: cell.column.id
             }
+
+            console.log(fetchedData);
+            console.log('this is whats fetched');
+            
+
+            
             setCellSlotArray(fetchedData?.pendingCellsArray ?? []);
 
+            console.log(cellSlotArray);
+            console.log('eye');
+            
+            
             //If there is a pending cell while its' properties are filled, then find that job in the array and grab its cell id, resource and time. resource and time are what i use to prefill the fields in the select options form. If a cell is not found, then that means there was no selection for that cell. So we redeclare cellInfo and set its properties to empty cause the user has not set them yet.
-            const pendingData = cellSlotArray.find( cellSlot => cellSlot.id.row === cellID.row && cellSlot.id.column === cellID.column);
+            const pendingData = fetchedData?.pendingCellsArray.find( cellSlot => cellSlot.id.row === cellID.row && cellSlot.id.column === cellID.column);
             
             if (pendingData !== undefined) {
                 const cellInfo = {
@@ -128,7 +138,7 @@ const Table = () => {
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
-                                <th className="tw-bg-[#00C49F] tw-text-lg tw-text-center tw-text-white tw-p-2 " key={header.id}>
+                            <th className="tw-bg-[#00C49F] tw-text-lg tw-text-center tw-text-white tw-p-2 " key={header.id}>
                                 {header.isPlaceholder
                                 ? null
                                 : (

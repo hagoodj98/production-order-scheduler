@@ -12,8 +12,8 @@ const slots: TimeSlots[] = [
     {
         id: 2,
         slot: {
-            start: '13:22',
-            end: '13:23'
+            start: '22:51',
+            end: '22:52'
         }   
     },
     {
